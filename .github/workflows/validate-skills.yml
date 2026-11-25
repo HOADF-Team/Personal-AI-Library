@@ -18,3 +18,16 @@ jobs:
         run: python validate_skills.py
       - name: Run AST audit tests
         run: python -m unittest discover -s tests -v
+  install-windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        shell: [powershell, pwsh]
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Test Windows installer
+        run: .\tests\test_install.ps1
