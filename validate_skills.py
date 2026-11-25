@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the repository's Agent Skills metadata using only the Python standard library."""
+"""Validate Agent Skills metadata using only the Python standard library."""
 
 from pathlib import Path
 import re
@@ -10,18 +10,22 @@ SKILLS_DIR = ROOT / "skills"
 errors = []
 seen = {}
 
+if not SKILLS_DIR.is_dir():
+    print("Skill validation FAILED: skills/ directory is missing.")
+    sys.exit(1)
+
 for skill_dir in sorted(p for p in SKILLS_DIR.iterdir() if p.is_dir()):
     manifest = skill_dir / "SKILL.md"
     if not manifest.is_file():
         errors.append(f"{skill_dir.name}: SKILL.md is missing")
         continue
 
-    text = manifest.read_text(encoding="utf-8")
-    if not text.startswith("---\n"):
+    content = manifest.read_text(encoding="utf-8")
+    if not content.startswith("---\n"):
         errors.append(f"{skill_dir.name}: YAML front matter must start at line 1")
         continue
 
-    parts = text.split("---", 2)
+    parts = content.split("---", 2)
     if len(parts) < 3:
         errors.append(f"{skill_dir.name}: YAML front matter is not closed")
         continue
@@ -38,7 +42,8 @@ for skill_dir in sorted(p for p in SKILLS_DIR.iterdir() if p.is_dir()):
         continue
 
     name = name_match.group(1)
-    description = desc_match.group(1).strip().strip('"').strip("'")
+    raw_description = desc_match.group(1).strip()
+    description = raw_description.strip('"').strip("'")
 
     if name != skill_dir.name:
         errors.append(f"{skill_dir.name}: folder name does not match manifest name '{name}'")
@@ -46,6 +51,11 @@ for skill_dir in sorted(p for p in SKILLS_DIR.iterdir() if p.is_dir()):
         errors.append(f"{skill_dir.name}: name exceeds 64 characters")
     if not description or len(description) > 1024:
         errors.append(f"{skill_dir.name}: description is empty or exceeds 1024 characters")
+    if ": " in raw_description and not (
+        (raw_description.startswith('"') and raw_description.endswith('"'))
+        or (raw_description.startswith("'") and raw_description.endswith("'"))
+    ):
+        errors.append(f"{skill_dir.name}: quote description because it contains ': '")
     if name in seen:
         errors.append(f"{skill_dir.name}: duplicate skill name also used by {seen[name]}")
     seen[name] = skill_dir.name
