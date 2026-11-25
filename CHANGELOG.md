@@ -10,6 +10,7 @@ Notable changes to Personal AI Library are recorded here. This file tracks repos
 - Preservation of user-created files and obsolete library files that have been modified locally.
 - Validation of local Markdown links in every Markdown document inside each Skill, including `references/`.
 - Unit tests for Markdown link validation and additional installer lifecycle and safety scenarios.
+- A repeatable manual evaluation protocol with five pilot Skill scenarios and a scoring rubric.
 
 ### Changed
 - The installer validates manifest paths and refuses path traversal or linked destination directories.
