@@ -1,0 +1,26 @@
+# Documentation and Skill Content License
+
+Except for files explicitly marked otherwise, the written materials in this repository are licensed under the **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0)**.
+
+This applies to:
+- `skills/**/SKILL.md`
+- `skills/**/references/**`
+- `AGENTS.md`
+- `CATALOG.md`
+- `SOURCES.md`
+- `README.md`
+
+You are free to:
+- **Share** — copy and redistribute the material in any medium or format.
+- **Adapt** — remix, transform, and build upon the material.
+
+Under these conditions:
+- **Attribution (BY):** give appropriate credit to HOADF, link to this repository and the license, and indicate whether changes were made.
+- **NonCommercial (NC):** do not use the material primarily for commercial advantage or monetary compensation without separate written permission from the rights holder.
+- **ShareAlike (SA):** if you share adapted material, distribute your contributions under the same license or a compatible license.
+
+Full legal terms: https://creativecommons.org/licenses/by-nc-sa/4.0/
+
+This notice does not relicense third-party materials. Any file with its own license or copyright notice remains subject to that notice. The software files listed in [LICENSE-CODE](LICENSE-CODE) are licensed separately under MIT.
+
+For commercial licensing or permission beyond these terms, contact the repository maintainer through GitHub.
