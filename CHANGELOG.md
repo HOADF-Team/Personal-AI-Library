@@ -14,6 +14,7 @@ Notable changes to Personal AI Library are recorded here. This file tracks repos
 ### Changed
 - The installer validates manifest paths and refuses path traversal or linked destination directories.
 - Repository validation and Python tests run against Python 3.9, 3.12, and 3.14 in GitHub Actions.
+- Fixed Python 3.9 fallback detection for standard-library source modules and platform extension modules.
 - README documents the tested Python versions and the manifest-based update behavior.
 
 ### Compatibility note
