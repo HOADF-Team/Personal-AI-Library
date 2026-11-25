@@ -9,8 +9,8 @@
 
 | Навык | Назначение | Статус |
 |---|---|---|
-| python-development | Python, отладка, рефакторинг | Готово |
-| code-audit | AST, импорты, вызовы, ошибки запуска | Готово |
+| python-development | Python, отладка, рефакторинг; локальный debugging runbook | Готово |
+| code-audit | AST, импорты, вызовы, ошибки запуска; AST-скрипт и методика | Готово |
 | web-development | Сайты, интерфейсы, HTML/CSS/JavaScript | Готово |
 | devops-vps | Linux, VPS, Docker, systemd | Готово |
 | automation-vps | API, webhooks и интеграции | В очереди |
@@ -32,7 +32,7 @@
 | crypto-research | Общий анализ крипторынка и стратегий | Готово |
 | crypto-market-analysis | Режим рынка, BTC, альткоины, funding | Готово |
 | crypto-futures-risk | Риск perpetual futures, плечо, стопы, ликвидация | Готово |
-| trading-bot-audit | Аудит торгового бота, логов и БД | Готово |
+| trading-bot-audit | Аудит торгового бота, логов и БД; сверка PnL и исполнений | Готово |
 
 ## Бизнес, маркетинг и продажи
 
@@ -48,7 +48,7 @@
 
 | Навык | Назначение | Статус |
 |---|---|---|
-| product-images | Обработка фото товаров | Готово |
+| product-images | Обработка фото товаров; контроль маски удаления фона | Готово |
 | marketplace-listings | Карточки товаров и объявления | Готово |
 
 ## Таблицы и документы
