@@ -1,11 +1,12 @@
 param(
-    [switch]$Force
+    [switch]$Force,
+    [string]$TargetRoot = (Join-Path $HOME ".agents\skills")
 )
 
 $ErrorActionPreference = "Stop"
 
 $sourceRoot = Join-Path $PSScriptRoot "skills"
-$targetRoot = Join-Path $HOME ".agents\skills"
+$targetRoot = $TargetRoot
 
 if (-not (Test-Path $sourceRoot)) {
     throw "Папка skills не найдена: $sourceRoot"
