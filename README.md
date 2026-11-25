@@ -109,7 +109,7 @@ These checks cover repository structure, local references, the syntax of checked
 - **Source review:** check the origin, license, dependencies, scripts, and compatibility of third-party materials.
 - **Transparency:** record sources and limitations; never claim checks or tests that were not performed.
 
-General agent guidance is available in [AGENTS.md](AGENTS.md). Source notes and selection criteria are documented in [SOURCES.md](SOURCES.md).
+General agent guidance is available in [AGENTS.md](AGENTS.md). Source notes and selection criteria are documented in [SOURCES.md](SOURCES.md). Repository changes are recorded in [CHANGELOG.md](CHANGELOG.md).
 
 ### Repository structure
 
@@ -118,6 +118,7 @@ Personal-AI-Library/
 ├── AGENTS.md
 ├── CATALOG.md
 ├── CATALOG-EN.md
+├── CHANGELOG.md
 ├── SOURCES.md
 ├── README.md
 ├── LICENSE
@@ -260,7 +261,7 @@ GitHub Actions автоматически выполняет проверки п
 - **Проверка источников:** проверять происхождение, лицензию, зависимости, скрипты и совместимость сторонних материалов.
 - **Прозрачность:** указывать источники и ограничения; не заявлять о проверках, которые фактически не проводились.
 
-Общие правила для агента находятся в [AGENTS.md](AGENTS.md). Источники и критерии отбора материалов описаны в [SOURCES.md](SOURCES.md).
+Общие правила для агента находятся в [AGENTS.md](AGENTS.md). Источники и критерии отбора материалов описаны в [SOURCES.md](SOURCES.md). История изменений репозитория ведётся в [CHANGELOG.md](CHANGELOG.md).
 
 ### Структура репозитория
 
@@ -269,6 +270,7 @@ Personal-AI-Library/
 ├── AGENTS.md
 ├── CATALOG.md
 ├── CATALOG-EN.md
+├── CHANGELOG.md
 ├── SOURCES.md
 ├── README.md
 ├── LICENSE
