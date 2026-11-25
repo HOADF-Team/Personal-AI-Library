@@ -10,10 +10,10 @@ import sys
 ROOT = Path(__file__).resolve().parent
 SKILLS_DIR = ROOT / "skills"
 
-INLINE_LINK_RE = re.compile(r"!?\\[[^\\]]*\\]\\(\\s*(?:<([^>]+)>|([^\\s)]+))[^)]*\\)")
-REFERENCE_LINK_RE = re.compile(r"(?m)^\\s{0,3}\\[[^\\]]+\\]:\\s*<?([^\\s>]+)>?")
-FENCE_START_RE = re.compile(r"^\\s{0,3}(\\x60{3,}|~{3,})")
-INLINE_CODE_RE = re.compile(r"(?<!\\x60)\\x60+[^\\x60]*\\x60+")
+INLINE_LINK_RE = re.compile(r"!?\[[^\]]*\]\(\s*(?:<([^>]+)>|([^\s)]+))[^)]*\)")
+REFERENCE_LINK_RE = re.compile(r"(?m)^\s{0,3}\[[^\]]+\]:\s*<?([^\s>]+)>?")
+FENCE_START_RE = re.compile(r"^\s{0,3}(\x60{3,}|~{3,})")
+INLINE_CODE_RE = re.compile(r"(?<!\x60)\x60+[^\x60]*\x60+")
 
 
 def strip_markdown_code(text: str) -> str:
@@ -30,7 +30,7 @@ def strip_markdown_code(text: str) -> str:
             continue
         if fence_char is not None:
             closing = re.match(
-                r"^\\s{0,3}" + re.escape(fence_char) + r"{" + str(fence_length) + r",}\\s*$",
+                r"^\s{0,3}" + re.escape(fence_char) + r"{" + str(fence_length) + r",}\s*$",
                 line,
             )
             if closing:
@@ -39,7 +39,7 @@ def strip_markdown_code(text: str) -> str:
             continue
         kept.append(line)
 
-    return INLINE_CODE_RE.sub("", "\\n".join(kept))
+    return INLINE_CODE_RE.sub("", "\n".join(kept))
 
 
 def extract_markdown_targets(text: str):
@@ -115,7 +115,7 @@ def validate_repository(root: Path = ROOT):
             errors.append(f"{skill_dir.name}: cannot read SKILL.md: {exc}")
             continue
 
-        if not content.startswith("---\\n"):
+        if not content.startswith("---\n"):
             errors.append(f"{skill_dir.name}: YAML front matter must start at line 1")
             continue
 
@@ -125,8 +125,8 @@ def validate_repository(root: Path = ROOT):
             continue
 
         front = parts[1]
-        name_match = re.search(r"(?m)^name:\\s*([a-z0-9][a-z0-9-]*)\\s*$", front)
-        desc_match = re.search(r"(?m)^description:\\s*(.+?)\\s*$", front)
+        name_match = re.search(r"(?m)^name:\s*([a-z0-9][a-z0-9-]*)\s*$", front)
+        desc_match = re.search(r"(?m)^description:\s*(.+?)\s*$", front)
 
         if not name_match:
             errors.append(f"{skill_dir.name}: missing/invalid name")
