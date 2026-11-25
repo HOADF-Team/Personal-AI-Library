@@ -5,6 +5,8 @@ $installer = Join-Path $repoRoot "install.ps1"
 $targetRoot = Join-Path $env:TEMP ("Personal-AI-Library-Test-" + [guid]::NewGuid().ToString("N"))
 $outsideFile = Join-Path (Split-Path -Parent $targetRoot) "Personal-AI-Library-outside-test.txt"
 $manifestPath = Join-Path $targetRoot ".personal-ai-library-manifest.json"
+$invalidSkillName = "incomplete-skill-" + [guid]::NewGuid().ToString("N")
+$invalidSourceDir = Join-Path $repoRoot ("skills\" + $invalidSkillName)
 
 function Add-ManifestEntry {
     param([string]$RelativePath, [string]$FilePath)
@@ -85,6 +87,18 @@ try {
         throw "Force update removed a user-created file."
     }
 
+    # A source folder without SKILL.md is invalid, but is not a deleted Skill.
+    $invalidTargetFile = Join-Path $targetRoot ($invalidSkillName + "\legacy.md")
+    New-Item -ItemType Directory -Force -Path $invalidSourceDir | Out-Null
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $invalidTargetFile) | Out-Null
+    Set-Content -LiteralPath (Join-Path $invalidSourceDir "README.txt") -Value "incomplete source" -Encoding UTF8
+    Set-Content -LiteralPath $invalidTargetFile -Value "preserve existing installation" -Encoding UTF8
+    Add-ManifestEntry -RelativePath ($invalidSkillName + "\legacy.md") -FilePath $invalidTargetFile
+    & $installer -Force -TargetRoot $targetRoot
+    if (-not (Test-Path -LiteralPath $invalidTargetFile -PathType Leaf)) {
+        throw "Installer removed files for a source folder that only lacks SKILL.md."
+    }
+
     # A malicious manifest path must stop the installer before touching outside files.
     Set-Content -LiteralPath $outsideFile -Value "must remain" -Encoding UTF8
     $maliciousManifest = [ordered]@{
@@ -111,6 +125,9 @@ try {
     Write-Host "Installer tests passed: copy, skip-existing, force-update, user-file preservation, safe stale-file cleanup and manifest path validation."
 }
 finally {
+    if (Test-Path -LiteralPath $invalidSourceDir) {
+        Remove-Item -LiteralPath $invalidSourceDir -Recurse -Force
+    }
     if (Test-Path -LiteralPath $targetRoot) {
         Remove-Item -LiteralPath $targetRoot -Recurse -Force
     }
