@@ -54,6 +54,28 @@ class PythonAstAuditTests(unittest.TestCase):
             self.assertEqual(report["unresolved_import_candidates"], 0)
             self.assertEqual(report["syntax_errors"], 0)
 
+    def test_detects_missing_submodule_in_from_import_without_flagging_exports(self):
+        with tempfile.TemporaryDirectory() as temp:
+            project = Path(temp)
+            package = project / "pkg"
+            package.mkdir()
+            (package / "__init__.py").write_text(
+                "VALUE = 1\\n", encoding="utf-8"
+            )
+            (package / "helper.py").write_text("VALUE = 2\\n", encoding="utf-8")
+            (project / "main.py").write_text(
+                "from pkg import missing, helper, VALUE\\n", encoding="utf-8"
+            )
+
+            code, report = self.run_audit(project)
+
+            self.assertEqual(code, 0)
+            candidates = [
+                item["module"] for item in report["findings"]
+                if item["kind"] == "unresolved_import_candidate"
+            ]
+            self.assertEqual(candidates, ["pkg.missing"])
+
     def test_reports_syntax_error_and_skips_virtual_environment(self):
         with tempfile.TemporaryDirectory() as temp:
             project = Path(temp)
