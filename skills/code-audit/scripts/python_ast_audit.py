@@ -6,9 +6,10 @@ import argparse
 import ast
 import json
 import sys
+import sysconfig
 from pathlib import Path
 
-SKIP_DIRS = {
+STDLIB_ROOT = Path(sysconfig.get_paths()["stdlib"]).resolve()\nSTDLIB_NAMES = set(getattr(sys, "stdlib_module_names", ()))\n\n\ndef is_stdlib_module(name: str) -> bool:\n    top = name.split(".", 1)[0]\n    if top in STDLIB_NAMES or top in sys.builtin_module_names:\n        return True\n    # Python 3.9 has no sys.stdlib_module_names; use its stdlib directory.\n    return (STDLIB_ROOT / top).exists()\n\n\nSKIP_DIRS = {
     ".git", ".hg", ".svn", ".venv", "venv", "env", "__pycache__",
     "site-packages", "dist", "build", ".tox", ".mypy_cache", ".pytest_cache",
 }
@@ -58,7 +59,7 @@ def audit_file(path: Path, root: Path):
             if not module:
                 continue
             top = module.split(".", 1)[0]
-            if top in getattr(sys, "stdlib_module_names", set()):
+            if is_stdlib_module(module):
                 continue
             if local_module_exists(root, module):
                 continue
