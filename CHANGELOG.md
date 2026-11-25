@@ -17,6 +17,7 @@ Notable changes to Personal AI Library are recorded here. This file tracks repos
 - The installer preserves files under source folders that exist but are invalid because they lack `SKILL.md`.
 - Repository validation and Python tests run against Python 3.9, 3.12, and 3.14 in GitHub Actions.
 - Fixed Python 3.9 fallback detection for standard-library source modules and platform extension modules.
+- Added detection of missing local submodule candidates in `from package import name` statements while accounting for statically visible package exports.
 - README documents the tested Python versions and the manifest-based update behavior.
 
 ### Compatibility note
