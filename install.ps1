@@ -16,6 +16,10 @@ if (-not (Test-Path -LiteralPath $sourceRoot -PathType Container)) {
 New-Item -ItemType Directory -Force -Path $targetRoot | Out-Null
 $targetRoot = [System.IO.Path]::GetFullPath($targetRoot)
 $rootPrefix = $targetRoot.TrimEnd([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar) + [System.IO.Path]::DirectorySeparatorChar
+$rootItem = Get-Item -LiteralPath $targetRoot -Force
+if (($rootItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
+    throw "Refusing to install through a linked target directory: $targetRoot"
+}
 
 function Get-FileHashValue {
     param([string]$Path)
@@ -25,8 +29,7 @@ function Get-FileHashValue {
 function Get-SafeTargetPath {
     param(
         [string]$RelativePath,
-        [string]$ExpectedRoot,
-        [string[]]$AllowedSkills
+        [string]$ExpectedRoot
     )
 
     if ([string]::IsNullOrWhiteSpace($RelativePath) -or
@@ -59,6 +62,13 @@ function Get-SafeTargetPath {
         $parent = Split-Path -Parent $parent
     }
 
+    if (Test-Path -LiteralPath $fullPath) {
+        $targetItem = Get-Item -LiteralPath $fullPath -Force
+        if (($targetItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
+            throw "Refusing to write or remove a linked file: $fullPath"
+        }
+    }
+
     return $fullPath
 }
 
@@ -79,9 +89,14 @@ if ($validSkillFolders.Count -eq 0) {
     exit 0
 }
 
-$allowedSkills = @($validSkillFolders | ForEach-Object { $_.Name })
 $managedFiles = @{}
 $hasPreviousManifest = Test-Path -LiteralPath $manifestPath -PathType Leaf
+if ($hasPreviousManifest) {
+    $manifestItem = Get-Item -LiteralPath $manifestPath -Force
+    if (($manifestItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
+        throw "Refusing to read or replace a linked installer manifest: $manifestPath"
+    }
+}
 
 if ($hasPreviousManifest) {
     try {
@@ -98,7 +113,7 @@ if ($hasPreviousManifest) {
             }
 
             # Validate every stored path before using it for any filesystem operation.
-            $null = Get-SafeTargetPath -RelativePath $relativePath -ExpectedRoot $targetRoot -AllowedSkills $allowedSkills
+            $null = Get-SafeTargetPath -RelativePath $relativePath -ExpectedRoot $targetRoot
             $managedFiles[$relativePath.Replace('/', '\')] = $hash.ToLowerInvariant()
         }
     }
@@ -122,7 +137,7 @@ foreach ($folder in $validSkillFolders) {
     foreach ($sourceFile in $sourceFiles) {
         $relativePath = $sourceFile.FullName.Substring($sourceRoot.Length).TrimStart('\', '/')
         $relativePath = $relativePath.Replace('/', '\')
-        $destinationPath = Get-SafeTargetPath -RelativePath $relativePath -ExpectedRoot $targetRoot -AllowedSkills $allowedSkills
+        $destinationPath = Get-SafeTargetPath -RelativePath $relativePath -ExpectedRoot $targetRoot
         $destinationDirectory = Split-Path -Parent $destinationPath
 
         New-Item -ItemType Directory -Force -Path $destinationDirectory | Out-Null
@@ -156,7 +171,7 @@ if ($Force -and $hasPreviousManifest) {
             continue
         }
 
-        $staleTarget = Get-SafeTargetPath -RelativePath $relativePath -ExpectedRoot $targetRoot -AllowedSkills $allowedSkills
+        $staleTarget = Get-SafeTargetPath -RelativePath $relativePath -ExpectedRoot $targetRoot
         if (Test-Path -LiteralPath $staleTarget -PathType Leaf) {
             $currentHash = Get-FileHashValue -Path $staleTarget
             if ($currentHash -eq $managedFiles[$relativePath]) {
