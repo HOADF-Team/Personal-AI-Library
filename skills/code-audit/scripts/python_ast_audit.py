@@ -9,7 +9,19 @@ import sys
 import sysconfig
 from pathlib import Path
 
-STDLIB_ROOT = Path(sysconfig.get_paths()["stdlib"]).resolve()\nSTDLIB_NAMES = set(getattr(sys, "stdlib_module_names", ()))\n\n\ndef is_stdlib_module(name: str) -> bool:\n    top = name.split(".", 1)[0]\n    if top in STDLIB_NAMES or top in sys.builtin_module_names:\n        return True\n    # Python 3.9 has no sys.stdlib_module_names; use its stdlib directory.\n    return (STDLIB_ROOT / top).exists()\n\n\nSKIP_DIRS = {
+STDLIB_ROOT = Path(sysconfig.get_paths()["stdlib"]).resolve()
+STDLIB_NAMES = set(getattr(sys, "stdlib_module_names", ()))
+
+
+def is_stdlib_module(name: str) -> bool:
+    top = name.split(".", 1)[0]
+    if top in STDLIB_NAMES or top in sys.builtin_module_names:
+        return True
+    # Python 3.9 has no sys.stdlib_module_names; use its stdlib directory.
+    return (STDLIB_ROOT / top).exists()
+
+
+SKIP_DIRS = {
     ".git", ".hg", ".svn", ".venv", "venv", "env", "__pycache__",
     "site-packages", "dist", "build", ".tox", ".mypy_cache", ".pytest_cache",
 }
