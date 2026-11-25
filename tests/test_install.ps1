@@ -78,7 +78,7 @@ try {
     if (-not (Test-Path -LiteralPath $modifiedObsoleteFile -PathType Leaf)) {
         throw "User-modified obsolete file was removed."
     }
-    if (-not (Test-Path -LiteralPath $retiredSkillFile)) {
+    if (Test-Path -LiteralPath $retiredSkillFile -PathType Leaf) {
         throw "Obsolete file from a removed Skill was not cleaned up."
     }
     if (-not (Test-Path -LiteralPath $localFile -PathType Leaf)) {
