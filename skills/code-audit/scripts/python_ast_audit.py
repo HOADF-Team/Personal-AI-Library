@@ -50,6 +50,39 @@ def local_module_exists(root: Path, module: str) -> bool:
     return base.with_suffix(".py").is_file() or (base / "__init__.py").is_file()
 
 
+def package_export_names(root: Path, module: str):
+    """Return names visibly exported by a local package __init__.py."""
+    init_file = root.joinpath(*module.split(".")) / "__init__.py"
+    if not init_file.is_file():
+        return set()
+    try:
+        tree = ast.parse(init_file.read_text(encoding="utf-8-sig"), filename=str(init_file))
+    except (OSError, UnicodeError, SyntaxError):
+        return set()
+
+    names = set()
+    for node in tree.body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            names.add(node.name)
+        elif isinstance(node, (ast.Import, ast.ImportFrom)):
+            for alias in node.names:
+                names.add(alias.asname or alias.name.split(".")[0])
+        elif isinstance(node, (ast.Assign, ast.AnnAssign)):
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            for target in targets:
+                for child in ast.walk(target):
+                    if isinstance(child, ast.Name):
+                        names.add(child.id)
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name) and target.id == "__all__" and isinstance(node.value, (ast.List, ast.Tuple)):
+                    names.update(
+                        item.value for item in node.value.elts
+                        if isinstance(item, ast.Constant) and isinstance(item.value, str)
+                    )
+    return names
+
+
 def audit_file(path: Path, root: Path):
     rel = path.relative_to(root).as_posix()
     try:
@@ -73,7 +106,34 @@ def audit_file(path: Path, root: Path):
             if node.level:
                 # Relative imports depend on package context; do not guess resolution.
                 continue
-            modules = [(node.module, node.lineno)] if node.module else []
+            module = node.module
+            if not module or is_stdlib_module(module):
+                continue
+            if local_module_exists(root, module):
+                package_dir = root.joinpath(*module.split("."))
+                if package_dir.is_dir():
+                    exported = package_export_names(root, module)
+                    for alias in node.names:
+                        if alias.name == "*" or alias.name in exported:
+                            continue
+                        if local_module_exists(root, module + "." + alias.name):
+                            continue
+                        findings.append({
+                            "kind": "unresolved_import_candidate",
+                            "file": rel,
+                            "line": node.lineno,
+                            "module": module + "." + alias.name,
+                            "message": "Подмодуль не найден, но имя может экспортироваться динамически; проверьте __init__.py вручную.",
+                        })
+                continue
+            findings.append({
+                "kind": "unresolved_import_candidate",
+                "file": rel,
+                "line": node.lineno,
+                "module": module,
+                "message": "Не найден как локальный модуль или stdlib; проверьте зависимости, namespace package и sys.path вручную.",
+            })
+            continue
         else:
             continue
 
