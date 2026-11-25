@@ -77,7 +77,7 @@ You can inspect the installer and skill files before running them. As with any d
 
 ### Validation and tests
 
-Python 3.9 or newer is required to run the repository validation and Python tests. No third-party packages are required for the basic validation:
+Python 3.9 or newer is required to run the repository validation and Python tests. CI checks compatibility on Python 3.9, 3.12, and 3.14. No third-party packages are required for the basic validation:
 
 ```powershell
 python .\validate_skills.py
@@ -228,7 +228,7 @@ Set-ExecutionPolicy -Scope Process Bypass
 
 ### Проверка и тесты
 
-Для проверки структуры библиотеки и запуска Python-тестов нужен Python 3.9 или новее. Для базовой проверки дополнительные пакеты не требуются:
+Для проверки структуры библиотеки и запуска Python-тестов нужен Python 3.9 или новее. Совместимость в CI проверяется на Python 3.9, 3.12 и 3.14. Для базовой проверки дополнительные пакеты не требуются:
 
 ```powershell
 python .\validate_skills.py
