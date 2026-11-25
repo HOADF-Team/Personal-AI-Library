@@ -33,12 +33,10 @@ foreach ($folder in $skillFolders) {
         continue
     }
 
-    if (Test-Path $targetSkillDir) {
-        Remove-Item -LiteralPath $targetSkillDir -Recurse -Force
-    }
-
-    Copy-Item -LiteralPath $folder.FullName -Destination $targetSkillDir -Recurse
-    Write-Host "Установлен: $($folder.Name)"
+    # Copy into the skills root. With -Force, matching files are updated,
+    # while unrelated user files in the destination skill folder are preserved.
+    Copy-Item -LiteralPath $folder.FullName -Destination $targetRoot -Recurse -Force
+    Write-Host "Установлен/обновлён: $($folder.Name)"
 }
 
 Write-Host ""
