@@ -13,7 +13,8 @@ Notable changes to Personal AI Library are recorded here. This file tracks repos
 - A repeatable manual evaluation protocol with five pilot Skill scenarios and a scoring rubric.
 
 ### Changed
-- The installer validates manifest paths and refuses path traversal or linked destination directories.
+- The installer validates manifest paths and refuses path traversal, linked target roots/directories/files, and linked manifests.
+- The installer preserves files under source folders that exist but are invalid because they lack `SKILL.md`.
 - Repository validation and Python tests run against Python 3.9, 3.12, and 3.14 in GitHub Actions.
 - Fixed Python 3.9 fallback detection for standard-library source modules and platform extension modules.
 - README documents the tested Python versions and the manifest-based update behavior.
