@@ -32,6 +32,8 @@ Set-ExecutionPolicy -Scope Process Bypass
 python .\validate_skills.py
 \`\`\`
 
+Проверка структуры также запускается автоматически через GitHub Actions при push и pull request.
+
 ## Структура
 
 - \`AGENTS.md\` — общие правила работы в этом репозитории.
