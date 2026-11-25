@@ -38,7 +38,7 @@ function Get-SafeTargetPath {
 
     $normalized = $RelativePath.Replace('/', '\')
     $parts = $normalized.Split([char]'\')
-    if ($parts.Count -lt 2 -or $parts[0] -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]*
+    if ($parts.Count -lt 2 -or $parts[0] -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]*$' -or
         $normalized -eq ".personal-ai-library-manifest.json") {
         throw "Invalid managed path in installer manifest: $RelativePath"
     }
