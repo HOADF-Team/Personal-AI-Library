@@ -16,3 +16,5 @@ jobs:
           python-version: "3.12"
       - name: Validate skill manifests
         run: python validate_skills.py
+      - name: Run AST audit tests
+        run: python -m unittest discover -s tests -v
