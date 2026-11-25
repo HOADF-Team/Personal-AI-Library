@@ -70,12 +70,9 @@ def audit_file(path: Path, root: Path):
         for module, line in modules:
             if not module:
                 continue
-            top = module.split(".", 1)[0]
             if is_stdlib_module(module):
                 continue
             if local_module_exists(root, module):
-                continue
-            if local_module_exists(root, top):
                 continue
             findings.append({
                 "kind": "unresolved_import_candidate",
