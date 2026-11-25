@@ -205,10 +205,6 @@ Write-Host ""
 Write-Host "Done. Codex skills folder: $targetRoot"
 Write-Host "Installer manifest: $manifestPath"
 Write-Host "Restart Codex if it is already running."
- -or
-        $normalized -eq ".personal-ai-library-manifest.json") {
-        throw "Invalid managed path in installer manifest: $RelativePath"
-    }
 
     $fullPath = [System.IO.Path]::GetFullPath((Join-Path $ExpectedRoot $normalized))
     if (-not $fullPath.StartsWith($rootPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
