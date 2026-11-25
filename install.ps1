@@ -63,6 +63,7 @@ function Get-SafeTargetPath {
 }
 
 $skillFolders = @(Get-ChildItem -LiteralPath $sourceRoot -Directory)
+$sourceSkillNames = @($skillFolders | ForEach-Object { $_.Name })
 $validSkillFolders = @()
 foreach ($folder in $skillFolders) {
     if (Test-Path -LiteralPath (Join-Path $folder.FullName "SKILL.md") -PathType Leaf) {
@@ -137,7 +138,9 @@ if ($Force -and $hasPreviousManifest) {
     # its files are known from the previous manifest and are hash-checked below.
     foreach ($relativePath in @($managedFiles.Keys)) {
         $oldSkillName = ($relativePath -replace '/', '\').Split('\')[0]
-        if (-not $processedSkills.ContainsKey($oldSkillName)) {
+        # Do not treat a present-but-invalid source folder as a removed Skill.
+        if (($sourceSkillNames -notcontains $oldSkillName) -and
+            -not $processedSkills.ContainsKey($oldSkillName)) {
             $processedSkills[$oldSkillName] = $true
         }
     }
