@@ -2,6 +2,7 @@
 """Validate Agent Skills metadata using only the Python standard library."""
 
 from pathlib import Path
+import ast
 import re
 import sys
 
@@ -60,10 +61,32 @@ for skill_dir in sorted(p for p in SKILLS_DIR.iterdir() if p.is_dir()):
         errors.append(f"{skill_dir.name}: duplicate skill name also used by {seen[name]}")
     seen[name] = skill_dir.name
 
+    # Verify relative Markdown links in SKILL.md (for example references/*.md).
+    for target in re.findall(r"\[[^\]]+\]\(([^)]+)\)", content):
+        target = target.split("#", 1)[0].strip()
+        if not target or "://" in target or target.startswith(("mailto:", "/")):
+            continue
+        if not (skill_dir / target).resolve().is_file():
+            errors.append(f"{skill_dir.name}: broken local link '{target}'")
+
+    # Parse reusable Python scripts without executing them.
+    scripts_dir = skill_dir / "scripts"
+    if scripts_dir.is_dir():
+        for script in sorted(scripts_dir.rglob("*.py")):
+            try:
+                ast.parse(script.read_text(encoding="utf-8-sig"), filename=str(script))
+            except (SyntaxError, UnicodeError, OSError) as exc:
+                errors.append(f"{skill_dir.name}: invalid script {script.relative_to(skill_dir)}: {exc}")
+
 if errors:
     print("Skill validation FAILED:")
     for error in errors:
         print(f" - {error}")
     sys.exit(1)
 
-print(f"Skill validation passed: {len(seen)} skills checked.")
+reference_count = sum(1 for path in SKILLS_DIR.rglob("references/*.md") if path.is_file())
+script_count = sum(1 for path in SKILLS_DIR.rglob("scripts/*.py") if path.is_file())
+print(
+    f"Skill validation passed: {len(seen)} skills checked, "
+    f"{reference_count} reference files found, {script_count} Python scripts parsed."
+)
