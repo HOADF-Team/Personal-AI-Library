@@ -60,11 +60,11 @@ class PythonAstAuditTests(unittest.TestCase):
             package = project / "pkg"
             package.mkdir()
             (package / "__init__.py").write_text(
-                "VALUE = 1\\n", encoding="utf-8"
+                "VALUE = 1\n", encoding="utf-8"
             )
-            (package / "helper.py").write_text("VALUE = 2\\n", encoding="utf-8")
+            (package / "helper.py").write_text("VALUE = 2\n", encoding="utf-8")
             (project / "main.py").write_text(
-                "from pkg import missing, helper, VALUE\\n", encoding="utf-8"
+                "from pkg import missing, helper, VALUE\n", encoding="utf-8"
             )
 
             code, report = self.run_audit(project)
