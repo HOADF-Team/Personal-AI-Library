@@ -17,8 +17,18 @@ def is_stdlib_module(name: str) -> bool:
     top = name.split(".", 1)[0]
     if top in STDLIB_NAMES or top in sys.builtin_module_names:
         return True
-    # Python 3.9 has no sys.stdlib_module_names; use its stdlib directory.
-    return (STDLIB_ROOT / top).exists()
+
+    # Python 3.9 has no sys.stdlib_module_names. Check source packages,
+    # single-file modules and platform extension modules explicitly.
+    module_path = STDLIB_ROOT / top
+    if (STDLIB_ROOT / (top + ".py")).is_file():
+        return True
+    if (module_path / "__init__.py").is_file():
+        return True
+
+    platform_stdlib = Path(sysconfig.get_paths().get("platstdlib", str(STDLIB_ROOT)))
+    extension_dir = platform_stdlib / "lib-dynload"
+    return extension_dir.is_dir() and any(extension_dir.glob(top + ".*"))
 
 
 SKIP_DIRS = {
