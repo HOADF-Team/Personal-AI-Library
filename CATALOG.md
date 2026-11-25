@@ -11,16 +11,16 @@
 |---|---|---|
 | python-development | Python, отладка, рефакторинг; локальный debugging runbook | Готово |
 | code-audit | AST, импорты, вызовы, ошибки запуска; AST-скрипт и методика | Готово |
-| web-development | Сайты, интерфейсы, HTML/CSS/JavaScript | Готово |
-| devops-vps | Linux, VPS, Docker, systemd | Готово |
+| web-development | Сайты, интерфейсы, HTML/CSS/JavaScript; GitHub Pages runbook | Готово |
+| devops-vps | Linux, VPS, Docker, systemd; read-only диагностика служб | Готово |
 | automation-vps | API, webhooks и интеграции | В очереди |
 
 ## Мессенджеры и площадки
 
 | Навык | Назначение | Статус |
 |---|---|---|
-| telegram-bots | Telegram-боты и интеграции | Готово |
-| max-bots | MAX-боты и интеграции | Готово |
+| telegram-bots | Telegram-боты; обработчики, polling/webhook, безопасность | Готово |
+| max-bots | MAX-боты; архитектура платформенного адаптера | Готово |
 | github-portfolio | Репозитории, README, Pages, портфолио | Готово |
 | social-media | Публикации для Telegram, X и GitHub | Готово |
 | content-planning | Контент-план и продвижение проектов | Готово |
@@ -30,8 +30,8 @@
 | Навык | Назначение | Статус |
 |---|---|---|
 | crypto-research | Общий анализ крипторынка и стратегий | Готово |
-| crypto-market-analysis | Режим рынка, BTC, альткоины, funding | Готово |
-| crypto-futures-risk | Риск perpetual futures, плечо, стопы, ликвидация | Готово |
+| crypto-market-analysis | Режим рынка, BTC, альткоины, funding; чек-лист режима | Готово |
+| crypto-futures-risk | Риск perpetual futures; расчёт позиции и риска | Готово |
 | trading-bot-audit | Аудит торгового бота, логов и БД; сверка PnL и исполнений | Готово |
 
 ## Бизнес, маркетинг и продажи
@@ -55,7 +55,7 @@
 
 | Навык | Назначение | Статус |
 |---|---|---|
-| google-sheets | Google Sheets и Apps Script | Готово |
+| google-sheets | Google Sheets и Apps Script; пакетная обработка и триггеры | Готово |
 | documents-office | Word, PDF, Excel и презентации | В очереди |
 
 ## Правила добавления
