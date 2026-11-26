@@ -188,3 +188,18 @@ Start with these five Skills. Expand the evaluation set only when a real task or
 - Score: **10/10** (task fit 2, procedure 2, accuracy 2, safety 2, deliverable 2).
 - Skill changes required: none for this case. The Skill and checklist explicitly require multiple timeframes, breadth, dominance, funding context, OI, liquidity, conflicting evidence and qualitative regime labels.
 - Limitations: one synthetic snapshot only; no live data freshness, exchange-to-exchange divergence, historical regime validation, event/news verification or predictive performance tested. No baseline run without the Skill.
+
+
+### 12. `crypto-research` — chronological strategy evaluation and costs
+
+**Evaluation record — 2026-11-26 (synthetic trade-ledger fixture):**
+- Repository commit before evaluation: `93ea5a313bf60560f75f6902388f76b61ba2b1d1`.
+- Skill and reference read: `skills/crypto-research/SKILL.md` and `references/strategy-research-protocol.md`.
+- Fixture: seven chronological synthetic closed trades. Gross PnL: [5, −3, 4, −2, 6, −4, 1]; fee per trade: 0.5; signed funding cashflows: [0, −0.1, 0, 0, +0.1, 0, 0]. Net PnL per trade: [4.5, −3.6, 3.5, −2.5, 5.6, −4.5, 0.5].
+- Chronological split: first four trades train, fifth validation, last two out-of-sample. Net PnL: train +1.9 (4 trades), validation +5.6 (1 trade), out-of-sample −4.0 (2 trades).
+- Full-sample descriptive metrics: 7 trades, net PnL +3.5, win rate 57.14%, profit factor 1.3302, maximum drawdown 4.5 units on the cumulative net-PnL sequence. These small synthetic values are arithmetic checks, not evidence of a profitable strategy.
+- Correct interpretation: despite positive full-sample PnL and win rate, the two-trade out-of-sample segment is negative and far too small to establish either failure or durable edge. A strategy profitability claim is unsupported. Costs and funding materially change the gross results; source, exchange, instrument, timeframe and timezone metadata are absent and must be reported as missing.
+- No parameter fitting, live market data, exchange API, account access or order execution.
+- Score: **10/10** (task fit 2, procedure 2, accuracy 2, safety 2, deliverable 2).
+- Skill changes required: none for this bounded case. The protocol explicitly requires realistic costs, chronological independent testing, drawdown, sample size and separation of evidence from hypotheses.
+- Limitations: synthetic seven-trade ledger only; no candle-level backtest, parameter search, walk-forward process, slippage model, multi-regime data or comparison against a baseline strategy. No baseline run without the Skill.
