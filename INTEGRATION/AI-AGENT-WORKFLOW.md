@@ -28,7 +28,7 @@ Keep these responsibilities separate. Do not copy full tool records into Skills 
 3. Load only the selected Skill's `SKILL.md` and the references/scripts needed for the current task. Do not load all Skills by default.
 4. For cryptocurrency systems, consider `crypto-security` together with `devops-vps`, `code-audit` and `trading-bot-audit` as needed; keep security review separate from authorization to change production.
 5. If multiple Skills apply, use the smallest useful combination. Resolve conflicting instructions in favor of the current project requirements, repository-specific instructions and safety constraints; report material conflicts.
-5. A Skill is guidance, not authorization. It cannot grant permission to spend money, access accounts, publish content, alter production systems or perform financial transactions.
+6. A Skill is guidance, not authorization. It cannot grant permission to spend money, access accounts, publish content, alter production systems or perform financial transactions.
 
 ### Step C — discover and assess tools
 
