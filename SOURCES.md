@@ -10,6 +10,7 @@
 - OpenAI Developers — Testing Agent Skills Systematically with Evals: https://developers.openai.com/blog/eval-skills
 - OpenAI — Skills in Plugins: https://developers.openai.com/plugins/concepts/skills
 - OpenAI — Codex skill discovery и progressive disclosure описаны в официальной документации OpenAI.
+- OpenAI API Reference — Codex CLI skill installation scopes and directories: https://developers.openai.com/api/reference/cli
 
 Навык — это папка с `SKILL.md`, где обязательны поля `name` и `description`. Дополнительные скрипты, ссылки и ресурсы подключаются только при необходимости. Описание навыка влияет на автоматический выбор, поэтому навыки должны быть узкими и не дублировать друг друга.
 
