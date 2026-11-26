@@ -306,3 +306,15 @@ Start with these five Skills. Expand the evaluation set only when a real task or
 - Re-test: недоверенная строка не передаётся напрямую в `setValues()`; формулы создаются отдельно из доверенной логики; после записи проверяется, что импортированная строка осталась текстом. Критерии проверки добавлены в workflow.
 - Final score: **10/10** (task fit 2, procedure 2, accuracy 2, safety 2, deliverable 2).
 - Limitations: синтетическая проверка кода и инструкции; реальный Google Sheet, Apps Script deployment, OAuth scopes, Advanced Sheets API и execution не запускались. Поведение `setValue(s)` подтверждено официальной документацией Google Apps Script Range. No baseline run without the Skill.
+
+### 21. `github-portfolio` — реагирование на утечку credential в публичный Git
+
+**Evaluation record — 2026-11-26 (synthetic repository incident fixture):**
+- Skill и reference прочитаны: `skills/github-portfolio/SKILL.md` и `references/repository-presentation-checklist.md`.
+- Fixture: API token случайно попал в публичный commit и README. Репозиторий уже клонировали; владелец хочет удалить строку и переписать историю.
+- First-pass finding: исходный checklist требовал удалить секрет из файлов и истории, но не ставил отзыв/ротацию credential первым обязательным шагом и не предупреждал, что force-push не удаляет копии из forks, clones и caches.
+- First-pass score: **9/10** (task fit 2, procedure 1, accuracy 2, safety 2, deliverable 2).
+- Correction: добавлены немедленный revoke/rotation у провайдера, затем очистка репозитория и доступных копий; запрет помещать секрет в чат/issue/log; оценка последствий force-push для collaborators и automation; оговорка, что Git history rewrite не отменяет компрометацию.
+- Re-test: токен считается скомпрометированным и ротируется до переписывания истории; секрет не повторяется в отчёте; очистка выполняется согласованно; forks/clones/caches считаются потенциально сохранившими старую копию. Критерии добавлены в workflow.
+- Final score: **10/10** (task fit 2, procedure 2, accuracy 2, safety 2, deliverable 2).
+- Limitations: синтетическая incident-response проверка; реальный token, GitHub secret scanning, provider revoke API, forks, caches и force-push не использовались. No baseline run without the Skill.
