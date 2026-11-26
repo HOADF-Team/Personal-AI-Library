@@ -155,9 +155,9 @@ def validate_repository(root: Path = ROOT):
         seen[name] = skill_dir.name
         skill_count += 1
 
-        # Check every Markdown document inside a Skill, not only SKILL.md.
+        # Count reference documents; all repository Markdown links are
+        # validated once below, including root-level project documentation.
         for markdown_file in sorted(skill_dir.rglob("*.md")):
-            errors.extend(validate_markdown_links(markdown_file, root))
             if markdown_file.parent.name == "references":
                 reference_count += 1
 
@@ -172,6 +172,15 @@ def validate_repository(root: Path = ROOT):
                     errors.append(
                         f"{skill_dir.name}: invalid script {script.relative_to(skill_dir)}: {exc}"
                     )
+
+    # Validate local links in every repository Markdown document, not only Skills.
+    # Ignore generated environments and Git internals when running from a checkout.
+    ignored_dirs = {".git", "__pycache__", ".venv", "venv", "node_modules"}
+    for markdown_file in sorted(root.rglob("*.md")):
+        relative_parts = markdown_file.relative_to(root).parts
+        if any(part in ignored_dirs for part in relative_parts):
+            continue
+        errors.extend(validate_markdown_links(markdown_file, root))
 
     return errors, skill_count, reference_count, script_count, []
 
