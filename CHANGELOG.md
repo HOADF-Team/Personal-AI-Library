@@ -2,6 +2,12 @@
 
 Notable changes to Personal AI Library are recorded here. This file tracks repository changes; it does not imply that every Skill has been validated in every project or environment.
 
+## 2026-11-26
+
+### Changed
+- Strengthened `devops-vps` secret-handling guidance: systemd unit output, journal entries, and process command lines are treated as potentially sensitive and must be redacted before sharing.
+- Recorded the simulated `devops-vps` pilot evaluation and its safety-guidance correction.
+
 ## 2026-11-25
 
 ### Added
