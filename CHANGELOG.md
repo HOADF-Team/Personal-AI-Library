@@ -33,6 +33,10 @@ Notable changes to Personal AI Library are recorded here. This file tracks repos
 ### Added
 - Recorded the synthetic `crypto-market-analysis` evaluation covering conflicting timeframes, market breadth, BTC dominance, funding, open interest and liquidity deterioration.
 
+
+### Added
+- Recorded a synthetic `crypto-research` evaluation covering fees, funding, chronological train/validation/out-of-sample separation, and the limits of a small sample.
+
 ## 2026-11-25
 
 ### Added
