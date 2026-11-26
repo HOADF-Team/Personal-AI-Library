@@ -45,8 +45,8 @@ try {
         throw "Installer manifest was not created."
     }
 
-    # Simulate interruption before the first manifest is written: complete
-    # copied files must be adopted, and missing files must be restored.
+    # Verify a manifest-less reinstall adopts complete files and restores
+    # a missing file. This does not simulate a process crash.
     Remove-Item -LiteralPath $manifestPath -Force
     Remove-Item -LiteralPath $referenceFile -Force
     & $installer -TargetRoot $targetRoot
@@ -66,8 +66,8 @@ try {
         throw "Without -Force, existing skill files should remain unchanged."
     }
 
-    # Simulate an interrupted install: a managed file is missing while the
-    # existing user-modified file must remain untouched on the recovery run.
+    # Verify a later reinstall restores a missing managed file while leaving
+    # an existing user-modified file untouched.
     Remove-Item -LiteralPath $referenceFile -Force
     & $installer -TargetRoot $targetRoot
     if (-not (Test-Path -LiteralPath $referenceFile -PathType Leaf)) {
@@ -197,7 +197,7 @@ try {
         throw "Installer modified a file outside the installation folder."
     }
 
-    Write-Host "Installer tests passed: copy, interrupted-install recovery, user-file preservation, force-update, safe stale-file cleanup and manifest path validation."
+    Write-Host "Installer tests passed: copy, manifest-less reinstall, missing-file restoration, user-file preservation, force-update, safe stale-file cleanup and manifest path validation."
 }
 finally {
     if (Test-Path -LiteralPath $invalidSourceDir) {
