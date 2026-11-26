@@ -7,6 +7,8 @@ $outsideFile = Join-Path (Split-Path -Parent $targetRoot) "Personal-AI-Library-o
 $manifestPath = Join-Path $targetRoot ".personal-ai-library-manifest.json"
 $invalidSkillName = "incomplete-skill-" + [guid]::NewGuid().ToString("N")
 $invalidSourceDir = Join-Path $repoRoot ("skills\" + $invalidSkillName)
+$linkedParent = Join-Path $env:TEMP ("Personal-AI-Library-Junction-" + [guid]::NewGuid().ToString("N"))
+$realParent = Join-Path $env:TEMP ("Personal-AI-Library-Real-" + [guid]::NewGuid().ToString("N"))
 
 function Add-ManifestEntry {
     param([string]$RelativePath, [string]$FilePath)
@@ -122,6 +124,25 @@ try {
         throw "Installer removed files for a source folder that only lacks SKILL.md."
     }
 
+    # A linked parent directory must be rejected before the installer creates
+    # the target directory through that link.
+    New-Item -ItemType Directory -Path $realParent | Out-Null
+    New-Item -ItemType Junction -Path $linkedParent -Target $realParent | Out-Null
+    $linkedTarget = Join-Path $linkedParent "skills"
+    $linkedParentRejected = $false
+    try {
+        & $installer -TargetRoot $linkedTarget
+    }
+    catch {
+        $linkedParentRejected = $true
+    }
+    if (-not $linkedParentRejected) {
+        throw "Installer accepted a target path with a linked parent directory."
+    }
+    if (Test-Path -LiteralPath $linkedTarget) {
+        throw "Installer created the target directory through a linked parent before rejecting it."
+    }
+
     # A malicious manifest path must stop the installer before touching outside files.
     Set-Content -LiteralPath $outsideFile -Value "must remain" -Encoding UTF8
     $maliciousManifest = [ordered]@{
@@ -156,5 +177,11 @@ finally {
     }
     if (Test-Path -LiteralPath $outsideFile) {
         Remove-Item -LiteralPath $outsideFile -Force
+    }
+    if (Test-Path -LiteralPath $linkedParent) {
+        Remove-Item -LiteralPath $linkedParent -Force
+    }
+    if (Test-Path -LiteralPath $realParent) {
+        Remove-Item -LiteralPath $realParent -Recurse -Force
     }
 }
