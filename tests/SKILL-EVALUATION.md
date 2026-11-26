@@ -294,3 +294,15 @@ Start with these five Skills. Expand the evaluation set only when a real task or
 - Re-test: сценарий проходит только если исходник остаётся нетронутым, VBA не отбрасывается молча, формулы остаются формулами, результат действительно пересчитан и сверён либо явно помечен как непроверенный при отсутствии движка. Все критерии инструкции покрыты.
 - Final score: **10/10** (task fit 2, procedure 2, accuracy 2, safety 2, deliverable 2).
 - Limitations: синтетическая проверка инструкций; реальная XLSM-книга, Excel/LibreOffice, выполнение VBA, внешние связи и совместимость макросов не тестировались. No baseline run without the Skill.
+
+### 20. `google-sheets` — безопасная запись импортируемых значений
+
+**Evaluation record — 2026-11-26 (synthetic Apps Script import fixture):**
+- Skill и reference прочитаны: `skills/google-sheets/SKILL.md` и `references/apps-script-patterns.md`.
+- Fixture: скрипт пакетно импортирует строки из внешнего CSV в Google Sheets; одна ячейка содержит текст `=IMPORTXML(...)`, который должен остаться обычным текстом.
+- First-pass finding: исходный Skill рекомендовал пакетный `setValues()`, но не предупреждал, что Apps Script интерпретирует строковое значение, начинающееся с `=`, как формулу. При прямой записи недоверенное содержимое могло стать формулой.
+- First-pass score: **9/10** (task fit 2, procedure 2, accuracy 2, safety 1, deliverable 2).
+- Correction: добавлены явное разделение доверенных формул и недоверенных данных, безопасная запись литерального текста (например, Sheets API `RAW` или проверенное экранирование), повторное чтение и проверка типа ячейки. Reference дополнен примером тестового значения и принципом минимальных OAuth scopes.
+- Re-test: недоверенная строка не передаётся напрямую в `setValues()`; формулы создаются отдельно из доверенной логики; после записи проверяется, что импортированная строка осталась текстом. Критерии проверки добавлены в workflow.
+- Final score: **10/10** (task fit 2, procedure 2, accuracy 2, safety 2, deliverable 2).
+- Limitations: синтетическая проверка кода и инструкции; реальный Google Sheet, Apps Script deployment, OAuth scopes, Advanced Sheets API и execution не запускались. Поведение `setValue(s)` подтверждено официальной документацией Google Apps Script Range. No baseline run without the Skill.
