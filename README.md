@@ -4,7 +4,7 @@
 
 Personal AI Library helps an AI coding agent move from a broad request to a structured workflow: investigation, code review, debugging, development, deployment, research, or document preparation. Instead of rebuilding the same process for every project, the agent can select a relevant skill and load its supporting references when needed.
 
-> **Current collection:** 23 skills. The collection is actively maintained. A documented workflow is not a guarantee that it has been tested in every project, environment, or service configuration.
+> **Current collection:** 23 skills. **Development version:** `0.1.0` (not yet published as a GitHub Release). The collection is actively maintained. A documented workflow is not a guarantee that it has been tested in every project, environment, or service configuration.
 
 **Languages:** [English](#english) | [Русский](#русский)
 
@@ -111,7 +111,7 @@ These checks cover repository structure, local references, the syntax of checked
 - **Source review:** check the origin, license, dependencies, scripts, and compatibility of third-party materials.
 - **Transparency:** record sources and limitations; never claim checks or tests that were not performed.
 
-General agent guidance is available in [AGENTS.md](AGENTS.md). Source notes and selection criteria are documented in [SOURCES.md](SOURCES.md). Repository changes are recorded in [CHANGELOG.md](CHANGELOG.md).
+General agent guidance is available in [AGENTS.md](AGENTS.md). Source notes and selection criteria are documented in [SOURCES.md](SOURCES.md). Repository changes are recorded in [CHANGELOG.md](CHANGELOG.md). Versioning and the manual release procedure are documented in [RELEASING.md](RELEASING.md).
 
 ### Repository structure
 
@@ -121,6 +121,8 @@ Personal-AI-Library/
 ├── CATALOG.md
 ├── CATALOG-EN.md
 ├── CHANGELOG.md
+├── RELEASING.md
+├── VERSION
 ├── SOURCES.md
 ├── README.md
 ├── LICENSE
@@ -164,7 +166,7 @@ Read the license files for the exact scope and conditions. Third-party materials
 
 Она помогает ИИ-агенту переходить от общей задачи к конкретному порядку действий: исследованию, аудиту кода, отладке, разработке, развёртыванию, анализу информации или подготовке документов. Вместо того чтобы каждый раз собирать процесс с нуля, агент выбирает подходящий навык и при необходимости читает дополнительные материалы.
 
-> **Текущая версия:** 23 навыка. Библиотека развивается. Наличие инструкции не означает, что описанный процесс проверен на всех проектах, системах и конфигурациях сервисов.
+> **Текущая коллекция:** 23 навыка. **Версия разработки:** `0.1.0` (релиз GitHub пока не опубликован). Библиотека развивается. Наличие инструкции не означает, что описанный процесс проверен на всех проектах, системах и конфигурациях сервисов.
 
 ### Что входит в библиотеку
 
