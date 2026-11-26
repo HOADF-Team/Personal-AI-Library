@@ -13,6 +13,7 @@ Notable changes to Personal AI Library are recorded here. This file tracks repos
 ### Changed
 - Updated the README to distinguish the five initial pilot cases from the expanded scenario evaluation records.
 - Extended repository validation to check local Markdown links in root documentation and all other repository Markdown files, with a regression test for root-level links.
+- Pinned `actions/checkout` and `actions/setup-python` in the CI workflow to immutable commit SHAs to reduce mutable-tag supply-chain risk.
 
 
 ### Added
