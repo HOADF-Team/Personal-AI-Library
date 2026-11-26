@@ -5,6 +5,9 @@ Notable changes to Personal AI Library are recorded here. This file tracks repos
 ## 2026-11-26
 
 ### Added
+- Recorded a multi-module `python-development` pilot tracing an environment-variable type mismatch from settings through a worker call, with four passing regression checks.
+
+### Added
 - Recorded the synthetic `product-images` mask-quality pilot, including the limits of alpha-channel metadata checks.
 
 ### Added
