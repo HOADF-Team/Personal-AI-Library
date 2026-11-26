@@ -96,3 +96,19 @@ Copy this block for each run:
 - Re-test result:
 
 Start with these five Skills. Expand the evaluation set only when a real task or repeated defect justifies it.
+
+
+### 6. `python-development`
+
+**Evaluation record — 2026-11-26 (simulated Python fixture):**
+- Repository commit before evaluation: `eefa134bfc84370df1288fe8845dc2147042bea6`.
+- Skill and reference read: `skills/python-development/SKILL.md` and `references/debugging-runbook.md`.
+- Fixture: a small function reads `payload.get("username")` and immediately calls `.strip().lower()`; the supplied payload omits `username`.
+- Reproduced traceback: `AttributeError: 'NoneType' object has no attribute 'strip'`, pointing to the project function's `.strip()` call.
+- Root cause: the code assumes the input field is present and a string, but a missing dictionary key makes `dict.get()` return `None`.
+- Minimal correction: validate that `username` is a non-empty string before calling string methods; raise a clear `ValueError` for missing, `None`, or blank values. No broad exception handler and no new dependency.
+- Regression checks run in an isolated in-memory Python fixture: valid value with whitespace; missing key; explicit `None`; blank string. **4 tests passed, 0 failures, 0 errors.** The original defect was separately reproduced before applying the correction.
+- No repository application code was changed; no production project or external service was accessed. Tests were executed in the evaluation runtime and were not added as a committed project test suite.
+- Score: **10/10** (task fit 2, procedure 2, accuracy 2, safety 2, deliverable 2).
+- Limitations: one small input-validation defect; no baseline run without the Skill; no asynchronous, packaging, database, network, or multi-module debugging scenario tested.
+- Skill changes required: none. The existing workflow and runbook covered traceback localization, checking actual value/type, minimal correction, and regression testing.
