@@ -41,7 +41,7 @@ Browse the complete list and each skill's purpose: [English skill catalog](CATAL
 
 **Requirements:** Windows 10 or 11 and Windows PowerShell 5.1 or PowerShell 7. Python is not required for installation.
 
-1. Open the [GitHub repository](https://github.com/HOADF/Personal-AI-Library).
+1. Open the [GitHub repository](https://github.com/HOADF-Team/Personal-AI-Library).
 2. Select **Code → Download ZIP**, then extract the archive.
 3. Open PowerShell in the extracted repository folder.
 4. Run:
@@ -67,7 +67,7 @@ Download and extract the latest repository version, open PowerShell in the new f
 .\install.ps1 -Force
 ```
 
-Without `-Force`, the installer works file by file: it adds missing library files, recognizes files that already match the library, and preserves untracked or locally modified files. With `-Force`, files currently supplied by the library are replaced with repository versions. The installer tracks managed files and their SHA256 hashes in `.personal-ai-library-manifest.json`. An obsolete file is deleted only if its contents still match the last installed hash; locally modified obsolete files and untracked user files are preserved. If no manifest exists, unknown files are not deleted automatically.
+Without `-Force`, the installer works file by file: it adds missing library files, recognizes files that already match the library, and preserves untracked or locally modified files. With `-Force`, files currently supplied by the library are replaced with repository versions. The installer tracks managed files and their SHA256 hashes in `.personal-ai-library-manifest.json`. An obsolete file is deleted only if its contents still match the last installed hash; locally modified obsolete files and untracked user files are preserved. If no manifest exists, unknown files are not deleted automatically. To roll back, download and extract the previous release, then run its `install.ps1 -Force`; the installer restores files from that version and removes newer library files only when their hashes still match the installed manifest. Keep a backup of locally edited skill files before changing versions.
 
 ### Installer and security notes
 
@@ -141,7 +141,7 @@ Personal-AI-Library/
 
 ### Feedback and contributions
 
-Found an error, an outdated instruction, or have an idea for a useful skill? Open a [GitHub Issue](https://github.com/HOADF/Personal-AI-Library/issues). Include the task, expected behavior, and relevant sources where possible.
+Found an error, an outdated instruction, or have an idea for a useful skill? Open a [GitHub Issue](https://github.com/HOADF-Team/Personal-AI-Library/issues). Include the task, expected behavior, and relevant sources where possible.
 
 New skills should solve a distinct practical problem, avoid duplicating existing skills, and respect the licenses of third-party materials.
 
@@ -197,7 +197,7 @@ Read the license files for the exact scope and conditions. Third-party materials
 
 **Требования:** Windows 10/11 и Windows PowerShell 5.1 или PowerShell 7. Для установки Python не требуется.
 
-1. Откройте [страницу репозитория на GitHub](https://github.com/HOADF/Personal-AI-Library).
+1. Откройте [страницу репозитория на GitHub](https://github.com/HOADF-Team/Personal-AI-Library).
 2. Нажмите **Code → Download ZIP** и распакуйте архив.
 3. Откройте PowerShell в распакованной папке.
 4. Выполните команды:
@@ -223,7 +223,7 @@ Set-ExecutionPolicy -Scope Process Bypass
 .\install.ps1 -Force
 ```
 
-Без параметра `-Force` установщик работает с файлами по отдельности: добавляет отсутствующие файлы библиотеки, распознаёт уже совпадающие с ней файлы и сохраняет незарегистрированные или изменённые пользователем файлы. С параметром `-Force` файлы текущей версии библиотеки заменяются версиями из репозитория. Установщик ведёт манифест управляемых файлов и их SHA256-хешей `.personal-ai-library-manifest.json`. Устаревший файл удаляется только если его содержимое совпадает с последней установленной версией; изменённые вручную устаревшие и незарегистрированные пользовательские файлы сохраняются. Если манифеста нет, неизвестные файлы автоматически не удаляются.
+Без параметра `-Force` установщик работает с файлами по отдельности: добавляет отсутствующие файлы библиотеки, распознаёт уже совпадающие с ней файлы и сохраняет незарегистрированные или изменённые пользователем файлы. С параметром `-Force` файлы текущей версии библиотеки заменяются версиями из репозитория. Установщик ведёт манифест управляемых файлов и их SHA256-хешей `.personal-ai-library-manifest.json`. Устаревший файл удаляется только если его содержимое совпадает с последней установленной версией; изменённые вручную устаревшие и незарегистрированные пользовательские файлы сохраняются. Если манифеста нет, неизвестные файлы автоматически не удаляются. Для отката скачайте и распакуйте предыдущий релиз, затем запустите его `install.ps1 -Force`: установщик восстановит файлы старой версии и удалит файлы, добавленные новой версией, только если их хеши совпадают с манифестом. Перед сменой версии сохраните резервную копию вручную изменённых файлов навыков.
 
 ### Безопасность установщика
 
@@ -295,7 +295,7 @@ Personal-AI-Library/
 
 ### Обратная связь и предложения
 
-Если вы нашли ошибку, устаревшую инструкцию или хотите предложить новый навык, создайте [Issue на GitHub](https://github.com/HOADF/Personal-AI-Library/issues). По возможности укажите задачу, ожидаемое поведение и источники.
+Если вы нашли ошибку, устаревшую инструкцию или хотите предложить новый навык, создайте [Issue на GitHub](https://github.com/HOADF-Team/Personal-AI-Library/issues). По возможности укажите задачу, ожидаемое поведение и источники.
 
 Новый навык должен решать отдельную практическую задачу, не дублировать существующие навыки и учитывать лицензии сторонних материалов.
 
@@ -312,5 +312,5 @@ Personal-AI-Library/
 
 ---
 
-**Repository:** https://github.com/HOADF/Personal-AI-Library  
+**Repository:** https://github.com/HOADF-Team/Personal-AI-Library  
 **Maintainer / Автор проекта:** HOADF
