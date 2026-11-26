@@ -5,6 +5,16 @@ Notable changes to Personal AI Library are recorded here. This file tracks repos
 ## 2026-11-26
 
 ### Added
+- Recorded scenario evaluations 19–27 for documents-office, google-sheets, github-portfolio, marketplace-listings, product-marketing, research-fact-checking, seo-audit, social-media, and marketing-copywriting.
+- Added Office workbook safeguards for formula recalculation and VBA preservation; Google Sheets safeguards against formula injection from untrusted imported values.
+- Added repository credential incident response guidance, marketplace photo privacy checks, research prompt-injection defenses and source provenance requirements.
+- Added SEO staging/privacy and lab-versus-field performance checks; social-media media-rights/consent checks; marketing-copy transparency and regulated-claims checks.
+
+### Changed
+- Updated the README to distinguish the five initial pilot cases from the expanded scenario evaluation records.
+
+
+### Added
 - Recorded the automation-vps webhook evaluation and strengthened atomic event acceptance to prevent lost events between deduplication and queue insertion.
 
 ### Changed
