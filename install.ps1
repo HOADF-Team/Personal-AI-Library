@@ -140,6 +140,12 @@ foreach ($folder in $validSkillFolders) {
 
         if ((Test-Path -LiteralPath $destinationPath -PathType Leaf) -and -not $Force) {
             $currentHash = Get-FileHashValue -Path $destinationPath
+            if ($currentHash -eq $sourceHash) {
+                # Adopt a complete file from an interrupted first install.
+                $managedFiles[$relativePath] = $sourceHash
+                continue
+            }
+
             $wasManaged = $managedFiles.ContainsKey($relativePath)
             if (-not $wasManaged -or $currentHash -ne $managedFiles[$relativePath]) {
                 # Never overwrite an untracked or user-modified file without -Force.
@@ -151,7 +157,18 @@ foreach ($folder in $validSkillFolders) {
         New-Item -ItemType Directory -Force -Path $destinationDirectory | Out-Null
         if (-not (Test-Path -LiteralPath $destinationPath -PathType Leaf) -or
             (Get-FileHashValue -Path $destinationPath) -ne $sourceHash) {
-            Copy-Item -LiteralPath $sourceFile.FullName -Destination $destinationPath -Force
+            # Copy to a sibling temporary file, then rename, so interruption
+            # cannot leave a truncated managed destination behind.
+            $temporaryPath = $destinationPath + "." + [guid]::NewGuid().ToString("N") + ".tmp"
+            try {
+                Copy-Item -LiteralPath $sourceFile.FullName -Destination $temporaryPath
+                Move-Item -LiteralPath $temporaryPath -Destination $destinationPath -Force
+            }
+            finally {
+                if (Test-Path -LiteralPath $temporaryPath) {
+                    Remove-Item -LiteralPath $temporaryPath -Force
+                }
+            }
             $copiedCount++
         }
         $managedFiles[$relativePath] = $sourceHash
