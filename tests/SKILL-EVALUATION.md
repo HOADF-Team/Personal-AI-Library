@@ -112,3 +112,17 @@ Start with these five Skills. Expand the evaluation set only when a real task or
 - Score: **10/10** (task fit 2, procedure 2, accuracy 2, safety 2, deliverable 2).
 - Limitations: one small input-validation defect; no baseline run without the Skill; no asynchronous, packaging, database, network, or multi-module debugging scenario tested.
 - Skill changes required: none. The existing workflow and runbook covered traceback localization, checking actual value/type, minimal correction, and regression testing.
+
+
+### 7. `product-images`
+
+**Evaluation record — 2026-11-26 (synthetic mask-quality fixture):**
+- Repository commit before evaluation: `eb2ba8e4b67ad529141d5448a3227e0fa036e33c`.
+- Skill and reference read: `skills/product-images/SKILL.md` and `references/background-removal-quality.md`.
+- Fixture: a locally generated 320×320 synthetic garment silhouette over a multicolour background, including a narrow hanging loop, an internal opening and separated lower sections. The fixture has a known ground-truth mask; it is not a real customer/product photograph.
+- Environment check: Pillow, OpenCV and NumPy were available; `rembg` and `onnxruntime` were not installed. No segmentation model inference was run.
+- A deliberately defective alpha mask was constructed to retain a background island, remove part of a sleeve and fill the garment opening. The exported PNG was RGBA, 320×320, alpha extrema 0–255, with 79,573 fully transparent pixels.
+- The runbook's basic PNG check correctly confirmed the alpha channel but, by itself, could not establish mask correctness. Comparison with the fixture's ground truth measured 714 retained background pixels, 484 lost product pixels, precision 0.9687, recall 0.9786 and mask IoU 0.9486. This demonstrates why alpha metadata alone is insufficient and why mask/edge inspection is required.
+- Score: **9/10** (task fit 2, procedure 2, accuracy 2, safety 2, deliverable 1). The diagnostic result is reproducible, but a real photograph and actual segmentation model were not tested.
+- Skill changes required: none. The current Skill and reference already require preserving the source, checking the alpha mask and difficult edges, detecting both leftover background and missing product pixels, and refusing to call a defective result finished.
+- Limitations: synthetic fixture only; no rembg/ONNX inference, real fabric texture, hairline/fur, shadows, JPEG artefacts or marketplace export workflow tested. The numeric metrics are possible here only because the synthetic fixture provides a known ground-truth mask; ordinary user photos generally do not.
