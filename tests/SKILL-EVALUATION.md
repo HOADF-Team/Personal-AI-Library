@@ -203,3 +203,17 @@ Start with these five Skills. Expand the evaluation set only when a real task or
 - Score: **10/10** (task fit 2, procedure 2, accuracy 2, safety 2, deliverable 2).
 - Skill changes required: none for this bounded case. The protocol explicitly requires realistic costs, chronological independent testing, drawdown, sample size and separation of evidence from hypotheses.
 - Limitations: synthetic seven-trade ledger only; no candle-level backtest, parameter search, walk-forward process, slippage model, multi-regime data or comparison against a baseline strategy. No baseline run without the Skill.
+
+
+### 13. `crypto-futures-risk` — fee-aware sizing and stop validation
+
+**Evaluation record — 2026-11-26 (deterministic linear-contract fixtures):**
+- Skill and reference re-read: `skills/crypto-futures-risk/SKILL.md` and `references/position-risk-calculation.md`.
+- Fixture A: linear long, entry 100, stop 98, quantity 10, capital 1,000. Gross stop loss = (100 − 98) × 10 = 20 units (2% of capital), notional = 1,000. With leverage 5×, approximate initial margin is 200 before exchange-specific buffers; leverage does not change the 20-unit gross PnL risk.
+- Fixture B: fee-aware sizing with risk budget R = 20; entry 100; stop 98; entry and exit fees 0.05% each; entry and exit slippage 0.10% each; conservative funding cost 0.01% per 8-hour interval for 3 intervals. Total estimated risk rate = 2.00% + 0.10% + 0.20% + 0.03% = 2.33%. Maximum approximate notional = 20 / 0.0233 = **858.37**; quantity = **8.5837**; estimated gross stop loss = 17.17, fees = 0.86, slippage = 1.72, funding = 0.26; total = 20.00. At 5× leverage, approximate initial margin = 171.67 before buffers. This verifies that costs belong in risk per unit of notional, not as a direct percentage subtraction from the cash risk budget.
+- Fixture C: linear short, entry 100, stop 102, quantity 10. Gross stop loss = (102 − 100) × 10 = 20 units. Directional formula is symmetric.
+- Boundary checks: long stop above entry and short stop below entry are invalid for the ordinary adverse-stop formula and must trigger clarification rather than a negative loss. Zero/negative entry, stop or quantity must not be treated as valid sizing inputs.
+- Inverse contracts: no linear formula applied; exchange-specific PnL and contract multiplier are required.
+- No live exchange data, account access, liquidation-price guess, order placement or account changes.
+- Score: **10/10** (task fit 2, procedure 2, accuracy 2, safety 2, deliverable 2).
+- Limitations: deterministic arithmetic fixtures only; fee/slippage/funding assumptions are synthetic; no exchange contract specification, tiered fees, changing notional, real funding history, inverse-contract calculation, liquidation engine or cross-margin portfolio was tested. No baseline run without the Skill.
