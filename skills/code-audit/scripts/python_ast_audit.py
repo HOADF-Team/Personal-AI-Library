@@ -45,9 +45,15 @@ def iter_python_files(root: Path):
 
 
 def local_module_exists(root: Path, module: str) -> bool:
+    """Check a project-root module, including implicit namespace packages.
+
+    The project root is treated as an import root. This is deliberately a
+    filesystem-only approximation; runtime sys.path and custom import hooks
+    are not evaluated.
+    """
     parts = module.split(".")
     base = root.joinpath(*parts)
-    return base.with_suffix(".py").is_file() or (base / "__init__.py").is_file()
+    return base.with_suffix(".py").is_file() or base.is_dir()
 
 
 def package_export_names(root: Path, module: str):
@@ -107,8 +113,10 @@ def audit_file(path: Path, root: Path):
                 # Relative imports depend on package context; do not guess resolution.
                 continue
             module = node.module
-            if not module or is_stdlib_module(module):
+            if not module:
                 continue
+            # A project-root module shadows the stdlib when this project root
+            # is an import root, so check it before classifying stdlib names.
             if local_module_exists(root, module):
                 package_dir = root.joinpath(*module.split("."))
                 if package_dir.is_dir():
@@ -140,9 +148,10 @@ def audit_file(path: Path, root: Path):
         for module, line in modules:
             if not module:
                 continue
-            if is_stdlib_module(module):
-                continue
+            # Resolve local modules first: e.g. project/json.py shadows stdlib json.
             if local_module_exists(root, module):
+                continue
+            if is_stdlib_module(module):
                 continue
             findings.append({
                 "kind": "unresolved_import_candidate",
