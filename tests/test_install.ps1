@@ -29,6 +29,34 @@ function Add-ManifestEntry {
 }
 
 try {
+    # A second process must not enter the installer while the target is locked.
+    New-Item -ItemType Directory -Force -Path $targetRoot | Out-Null
+    $lockPath = Join-Path $targetRoot ".personal-ai-library-install.lock"
+    $heldLock = [System.IO.File]::Open(
+        $lockPath,
+        [System.IO.FileMode]::OpenOrCreate,
+        [System.IO.FileAccess]::ReadWrite,
+        [System.IO.FileShare]::None
+    )
+    $concurrentRunRejected = $false
+    try {
+        & $installer -TargetRoot $targetRoot
+    }
+    catch {
+        if ($_.Exception.Message -match "Another Personal AI Library installer is already running") {
+            $concurrentRunRejected = $true
+        }
+        else {
+            throw
+        }
+    }
+    finally {
+        $heldLock.Dispose()
+    }
+    if (-not $concurrentRunRejected) {
+        throw "Installer did not reject a concurrent run for the same target."
+    }
+
     & $installer -TargetRoot $targetRoot
 
     $skillFile = Join-Path $targetRoot "code-audit\SKILL.md"
@@ -230,7 +258,7 @@ try {
         throw "Installer modified a file outside the installation folder."
     }
 
-    Write-Host "Installer tests passed: copy, reinstall, user-file preservation, force-update, stale-file cleanup, interrupted-update recovery and manifest path validation."
+    Write-Host "Installer tests passed: copy, reinstall, user-file preservation, force-update, stale-file cleanup, interrupted-update recovery, concurrent-run locking and manifest path validation."
 }
 finally {
     if (Test-Path -LiteralPath $invalidSourceDir) {
