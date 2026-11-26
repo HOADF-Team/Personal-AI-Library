@@ -5,6 +5,9 @@ Notable changes to Personal AI Library are recorded here. This file tracks repos
 ## 2026-11-26
 
 ### Added
+- Recorded the synthetic `product-images` mask-quality pilot, including the limits of alpha-channel metadata checks.
+
+### Added
 - Recorded the simulated `python-development` traceback, minimal input-validation correction, and four passing regression checks.
 
 ### Added
