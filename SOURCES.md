@@ -1,10 +1,13 @@
 # Источники и проверка сторонних материалов
 
-Дата проверки: 25 ноября 2026.
+Дата проверки: 26 ноября 2026.
 
 ## Официальная спецификация и документация
 
 - OpenAI — Build skills: https://learn.chatgpt.com/docs/build-skills
+- OpenAI Developers — Skills (Responses API): https://developers.openai.com/api/docs/guides/tools-skills
+- OpenAI Developers — Build skills: https://developers.openai.com/plugins/build/skills
+- OpenAI Developers — Testing Agent Skills Systematically with Evals: https://developers.openai.com/blog/eval-skills
 - OpenAI — Skills in Plugins: https://developers.openai.com/plugins/concepts/skills
 - OpenAI — Codex skill discovery и progressive disclosure описаны в официальной документации OpenAI.
 
