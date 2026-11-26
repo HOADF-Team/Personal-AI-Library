@@ -4,13 +4,12 @@
 
 ## Официальная спецификация и документация
 
-- OpenAI — Build skills: https://learn.chatgpt.com/docs/build-skills
+- OpenAI — Build skills (Codex skill format, discovery, progressive disclosure and installation scopes): https://developers.openai.com/codex/skills
 - OpenAI Developers — Skills (Responses API): https://developers.openai.com/api/docs/guides/tools-skills
 - OpenAI Developers — Build skills: https://developers.openai.com/plugins/build/skills
 - OpenAI Developers — Testing Agent Skills Systematically with Evals: https://developers.openai.com/blog/eval-skills
-- OpenAI — Skills in Plugins: https://developers.openai.com/plugins/concepts/skills
-- OpenAI — Codex skill discovery и progressive disclosure описаны в официальной документации OpenAI.
-- OpenAI API Reference — Codex CLI skill installation scopes and directories: https://developers.openai.com/api/reference/cli
+- OpenAI Developers — Skills in Plugins: https://developers.openai.com/plugins/concepts/skills
+- OpenAI API Reference — Skills API endpoints (create, retrieve, update, delete and list): https://developers.openai.com/api/reference/cli
 
 Навык — это папка с `SKILL.md`, где обязательны поля `name` и `description`. Дополнительные скрипты, ссылки и ресурсы подключаются только при необходимости. Описание навыка влияет на автоматический выбор, поэтому навыки должны быть узкими и не дублировать друг друга.
 
@@ -27,7 +26,8 @@ https://github.com/coreyhaines31/marketingskills
 ### JayLunia/trading-agent-skills
 https://github.com/JayLunia/trading-agent-skills
 
-- Лицензия в исходном репозитории: MIT.
+- Это независимый fork проекта [tradermonty/claude-trading-skills](https://github.com/tradermonty/claude-trading-skills); это прямо указано в README форка и подтверждается метаданными GitHub.
+- README форка указывает, что он сохраняет upstream MIT license и attribution; GitHub metadata форка также указывает MIT License.
 - Проверены README, лицензия, `crypto-regime-analyzer`, `position-sizer` и `pre-trade-discipline-gate`.
 - Crypto regime analyzer зависит от собственных Python-скриптов, методологии и файлов в `references/`; один SKILL.md не является рабочим комплектом.
 - Position sizer ориентирован на акции, а не на perpetual futures.
@@ -36,7 +36,7 @@ https://github.com/JayLunia/trading-agent-skills
 ### openai/skills
 https://github.com/openai/skills
 
-- Репозиторий помечен владельцем как deprecated.
+- В README исходного репозитория есть явное уведомление владельца: репозиторий deprecated; для актуальных примеров предлагается OpenAI Plugins repository и документация Codex.
 - Не используется как актуальный источник для сборки.
 
 ## Принцип лицензирования
