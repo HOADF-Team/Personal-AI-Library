@@ -230,3 +230,17 @@ Start with these five Skills. Expand the evaluation set only when a real task or
 - Re-test: the malicious display value is rendered as text through DOM APIs, not parsed as markup; the `javascript:` URL is rejected; no client-side secret or access-control assumption is introduced. The static-hosting constraint remains explicit.
 - Final score: **10/10** (task fit 2, procedure 2, accuracy 2, safety 2, deliverable 2).
 - Limitations: source-review fixture only; no browser automation, deployed Pages site, CSP/header configuration, dependency audit, authentication backend, real API or cross-browser test was run. No baseline run without the Skill.
+
+
+### 15. `telegram-bots` — update redelivery and durable processing
+
+**Evaluation record — 2026-11-26 (synthetic Telegram update fixture):**
+- Skill and reference read: `skills/telegram-bots/SKILL.md` and `references/telegram-bot-runbook.md`.
+- Fixture: a synthetic state-changing Telegram update with `update_id=1042`, a callback query from a user without the required server-side role, and a webhook request with valid/invalid secret-token headers. No real Telegram bot, token, chat or API was used.
+- First-pass checks: duplicate update IDs were recognized as idempotency keys; unauthorized callback action was rejected using server-side identity/role rather than button visibility; invalid webhook secret was rejected; logs excluded bot token and personal update payload.
+- First-pass gap: the runbook required an idempotency key but did not require the processed marker and durable work item to be committed atomically. A simulated crash after marking the update processed but before enqueueing the action caused redelivery to be discarded while the work was absent.
+- First-pass score: **9/10** (task fit 2, procedure 1, accuracy 2, safety 2, deliverable 2).
+- Correction: require a transactionally coupled idempotency marker and durable queue/outbox item; acknowledge webhook delivery or advance polling offset only after durable acceptance where the framework permits; require idempotent worker effects.
+- Re-test: crash before transaction commit leaves neither marker nor work item; redelivery commits both; another duplicate is rejected; worker retry does not repeat the business effect. Unauthorized callback and invalid webhook secret remain rejected. All fixture checks passed.
+- Final score: **10/10** (task fit 2, procedure 2, accuracy 2, safety 2, deliverable 2).
+- Limitations: in-memory transaction simulation only; no real Telegram delivery retries, framework polling offsets, webhook HTTP acknowledgement, database isolation/unique constraint, bot permissions, network timeout or production chat was tested. No baseline run without the Skill.
