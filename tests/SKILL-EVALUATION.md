@@ -159,3 +159,18 @@ Start with these five Skills. Expand the evaluation set only when a real task or
 - Score: **10/10** (task fit 2, procedure 2, accuracy 2, safety 2, deliverable 2). No orders, account changes, production database access or external API calls.
 - Skill changes required: none for this fixture. The workflow correctly separates partial fills, checks duplicated event delivery, applies fee and funding cashflows, and excludes residual open quantity from closed-trade statistics.
 - Limitations: synthetic linear contract only; all fees and funding were pre-normalized to one settlement currency. No exchange API schema, inverse contract, multiplier, real ledger export, timezone boundary, reconnect implementation or production database was tested. No baseline run without the Skill.
+
+
+### 10. automation-vps — webhook delivery and idempotency
+
+**Evaluation record — 2026-11-26 (synthetic webhook fixture):**
+- Repository commit before evaluation: `53cfd96905acc53df191ae5ad657d614c75a6d46`.
+- Skill and reference read: `skills/automation-vps/SKILL.md` and `references/integration-runbook.md`.
+- Fixture: local-only webhook receiver using a synthetic HMAC-SHA256 secret, JSON payloads, event IDs, duplicate delivery and out-of-order sequence numbers. No external API, real secret or production endpoint was used.
+- Initial checks: valid signature accepted; invalid signature rejected; malformed/missing event ID rejected; duplicate event ID did not create a second simulated effect; out-of-order event accepted. These checks passed.
+- First-pass gap: the initial flow persisted the event ID as processed before durable queue insertion. A simulated crash in that interval caused the retry to be classified as duplicate while no queue item existed. This demonstrated a possible lost-event failure despite basic deduplication.
+- First-pass score: **9/10** (task fit 2, procedure 1, accuracy 2, safety 2, deliverable 2).
+- Correction: SKILL.md and integration-runbook.md now require atomic persistence of the event ID and durable queue/outbox item, acknowledgement only after durable acceptance where the provider contract permits it, and idempotent worker-side effects. Added crash-between-receive-and-enqueue and worker-retry cases to the test checklist.
+- Re-test: transaction fixture simulated a crash before commit, then retry and duplicate redelivery. The failed transaction left neither a processed marker nor a queue item; retry committed both; subsequent redelivery was rejected as duplicate. **All 3 transaction-state checks passed**, alongside the 5 initial signature/schema/deduplication/order checks.
+- Final score: **10/10** (task fit 2, procedure 2, accuracy 2, safety 2, deliverable 2). No messages, payments, external API calls or production changes.
+- Limitations: in-memory transaction simulation only; no actual database isolation/unique constraint, message broker, provider-specific signature scheme, HTTP timeout/retry behavior, 429/5xx handling or production webhook was exercised. No baseline run without the Skill.
