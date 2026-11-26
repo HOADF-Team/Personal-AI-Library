@@ -39,6 +39,18 @@ try {
         throw "Installer manifest was not created."
     }
 
+    # Simulate interruption before the first manifest is written: complete
+    # copied files must be adopted, and missing files must be restored.
+    Remove-Item -LiteralPath $manifestPath -Force
+    Remove-Item -LiteralPath $referenceFile -Force
+    & $installer -TargetRoot $targetRoot
+    if (-not (Test-Path -LiteralPath $referenceFile -PathType Leaf)) {
+        throw "A manifest-less interrupted install did not restore a missing file."
+    }
+    if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
+        throw "Recovery did not recreate the installer manifest."
+    }
+
     $localFile = Join-Path $targetRoot "code-audit\user-local-note.txt"
     Set-Content -LiteralPath $localFile -Value "keep me" -Encoding UTF8
     Set-Content -LiteralPath $skillFile -Value "local modified copy" -Encoding UTF8
