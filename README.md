@@ -67,7 +67,7 @@ Download and extract the latest repository version, open PowerShell in the new f
 .\install.ps1 -Force
 ```
 
-Without `-Force`, existing skill folders are skipped. With `-Force`, files currently supplied by the library are replaced with repository versions. The installer tracks managed files and their SHA256 hashes in `.personal-ai-library-manifest.json`. An obsolete file is deleted only if its contents still match the last installed hash; locally modified obsolete files and untracked user files are preserved. If no manifest exists, unknown files are not deleted automatically.
+Without `-Force`, the installer works file by file: it adds missing library files, recognizes files that already match the library, and preserves untracked or locally modified files. With `-Force`, files currently supplied by the library are replaced with repository versions. The installer tracks managed files and their SHA256 hashes in `.personal-ai-library-manifest.json`. An obsolete file is deleted only if its contents still match the last installed hash; locally modified obsolete files and untracked user files are preserved. If no manifest exists, unknown files are not deleted automatically.
 
 ### Installer and security notes
 
@@ -221,7 +221,7 @@ Set-ExecutionPolicy -Scope Process Bypass
 .\install.ps1 -Force
 ```
 
-Без параметра `-Force` установщик пропускает уже существующие папки навыков. С параметром `-Force` файлы текущей версии библиотеки заменяются версиями из репозитория. Установщик ведёт манифест управляемых файлов и их SHA256-хешей `.personal-ai-library-manifest.json`. Устаревший файл удаляется только если его содержимое совпадает с последней установленной версией; изменённые вручную устаревшие и незарегистрированные пользовательские файлы сохраняются. Если манифеста нет, неизвестные файлы автоматически не удаляются.
+Без параметра `-Force` установщик работает с файлами по отдельности: добавляет отсутствующие файлы библиотеки, распознаёт уже совпадающие с ней файлы и сохраняет незарегистрированные или изменённые пользователем файлы. С параметром `-Force` файлы текущей версии библиотеки заменяются версиями из репозитория. Установщик ведёт манифест управляемых файлов и их SHA256-хешей `.personal-ai-library-manifest.json`. Устаревший файл удаляется только если его содержимое совпадает с последней установленной версией; изменённые вручную устаревшие и незарегистрированные пользовательские файлы сохраняются. Если манифеста нет, неизвестные файлы автоматически не удаляются.
 
 ### Безопасность установщика
 
