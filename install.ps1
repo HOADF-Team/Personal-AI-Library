@@ -45,6 +45,24 @@ if (($rootItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0)
     throw "Refusing to install through a linked target directory: $targetRoot"
 }
 
+$lockPath = Join-Path $targetRoot ".personal-ai-library-install.lock"
+try {
+    # FileShare.None is an OS-enforced, cross-process lock. The lock file may
+    # remain after a crash; the operating system releases the handle, so the
+    # next installer can safely open the same file.
+    $installerLockStream = [System.IO.File]::Open(
+        $lockPath,
+        [System.IO.FileMode]::OpenOrCreate,
+        [System.IO.FileAccess]::ReadWrite,
+        [System.IO.FileShare]::None
+    )
+}
+catch [System.IO.IOException] {
+    throw "Another Personal AI Library installer is already running for: $targetRoot"
+}
+
+try {
+
 function Get-FileHashValue {
     param([string]$Path)
     return (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -410,3 +428,10 @@ Write-Host "Installer manifest: $manifestPath"
 Remove-Item -LiteralPath $transactionPath -Force
 Remove-Item -LiteralPath $backupRoot -Recurse -Force
 Write-Host "Restart Codex if it is already running."
+ 
+}
+finally {
+    if ($installerLockStream) {
+        $installerLockStream.Dispose()
+    }
+}
