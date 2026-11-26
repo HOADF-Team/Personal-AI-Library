@@ -9,6 +9,10 @@ $invalidSkillName = "incomplete-skill-" + [guid]::NewGuid().ToString("N")
 $invalidSourceDir = Join-Path $repoRoot ("skills\" + $invalidSkillName)
 $linkedParent = Join-Path $env:TEMP ("Personal-AI-Library-Junction-" + [guid]::NewGuid().ToString("N"))
 $realParent = Join-Path $env:TEMP ("Personal-AI-Library-Real-" + [guid]::NewGuid().ToString("N"))
+$rollbackRoot = Join-Path $env:TEMP ("Personal-AI-Library-Rollback-" + [guid]::NewGuid().ToString("N"))
+$versionA = Join-Path $rollbackRoot "version-a"
+$versionB = Join-Path $rollbackRoot "version-b"
+$rollbackTarget = Join-Path $rollbackRoot "installed"
 
 function Add-ManifestEntry {
     param([string]$RelativePath, [string]$FilePath)
@@ -124,6 +128,33 @@ try {
         throw "Installer removed files for a source folder that only lacks SKILL.md."
     }
 
+    # Verify a user can roll back by running an older extracted release with -Force.
+    foreach ($versionDir in @($versionA, $versionB)) {
+        New-Item -ItemType Directory -Force -Path (Join-Path $versionDir "skills\sample-skill") | Out-Null
+        Copy-Item -LiteralPath $installer -Destination (Join-Path $versionDir "install.ps1")
+    }
+    Set-Content -LiteralPath (Join-Path $versionA "skills\sample-skill\SKILL.md") -Value "version A" -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $versionA "skills\sample-skill\legacy.md") -Value "only in A" -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $versionB "skills\sample-skill\SKILL.md") -Value "version B" -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $versionB "skills\sample-skill\new.md") -Value "only in B" -Encoding UTF8
+
+    & (Join-Path $versionA "install.ps1") -TargetRoot $rollbackTarget
+    & (Join-Path $versionB "install.ps1") -Force -TargetRoot $rollbackTarget
+    if ((Get-Content -LiteralPath (Join-Path $rollbackTarget "sample-skill\SKILL.md") -Raw).Trim() -ne "version B") {
+        throw "The newer test release was not installed before rollback."
+    }
+
+    & (Join-Path $versionA "install.ps1") -Force -TargetRoot $rollbackTarget
+    if ((Get-Content -LiteralPath (Join-Path $rollbackTarget "sample-skill\SKILL.md") -Raw).Trim() -ne "version A") {
+        throw "Rollback did not restore the previous Skill content."
+    }
+    if (-not (Test-Path -LiteralPath (Join-Path $rollbackTarget "sample-skill\legacy.md") -PathType Leaf)) {
+        throw "Rollback did not restore a file removed by the newer version."
+    }
+    if (Test-Path -LiteralPath (Join-Path $rollbackTarget "sample-skill\new.md")) {
+        throw "Rollback did not remove a file introduced by the newer version."
+    }
+
     # A linked parent directory must be rejected before the installer creates
     # the target directory through that link.
     New-Item -ItemType Directory -Path $realParent | Out-Null
@@ -183,5 +214,8 @@ finally {
     }
     if (Test-Path -LiteralPath $realParent) {
         Remove-Item -LiteralPath $realParent -Recurse -Force
+    }
+    if (Test-Path -LiteralPath $rollbackRoot) {
+        Remove-Item -LiteralPath $rollbackRoot -Recurse -Force
     }
 }
