@@ -15,6 +15,8 @@ Notable changes to Personal AI Library are recorded here. This file tracks repos
 - Extended repository validation to check local Markdown links in root documentation and all other repository Markdown files, with a regression test for root-level links.
 - Pinned `actions/checkout` and `actions/setup-python` in the CI workflow to immutable commit SHAs to reduce mutable-tag supply-chain risk.
 - Refreshed `SOURCES.md` with current official OpenAI Skills and evaluation documentation links and the verification date.
+- Hardened installer target validation to reject reparse-point ancestors before creating the destination, with a Windows regression test for junction-based paths.
+- Clarified in the README that non-forced installation is file-level: missing files are added while untracked and locally modified files are preserved.
 
 
 ### Added
