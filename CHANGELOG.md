@@ -4,6 +4,9 @@ Notable changes to Personal AI Library are recorded here. This file tracks repos
 
 ## 2026-11-26
 
+### Added
+- Recorded the simulated `crypto-futures-risk` linear-position calculation pilot.
+
 ### Changed
 - Strengthened `devops-vps` secret-handling guidance: systemd unit output, journal entries, and process command lines are treated as potentially sensitive and must be redacted before sharing.
 - Recorded the simulated `devops-vps` pilot evaluation and its safety-guidance correction.
