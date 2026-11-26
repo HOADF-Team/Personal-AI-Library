@@ -244,3 +244,17 @@ Start with these five Skills. Expand the evaluation set only when a real task or
 - Re-test: crash before transaction commit leaves neither marker nor work item; redelivery commits both; another duplicate is rejected; worker retry does not repeat the business effect. Unauthorized callback and invalid webhook secret remain rejected. All fixture checks passed.
 - Final score: **10/10** (task fit 2, procedure 2, accuracy 2, safety 2, deliverable 2).
 - Limitations: in-memory transaction simulation only; no real Telegram delivery retries, framework polling offsets, webhook HTTP acknowledgement, database isolation/unique constraint, bot permissions, network timeout or production chat was tested. No baseline run without the Skill.
+
+
+### 16. `max-bots` — повторная доставка webhook и авторизация callback
+
+**Evaluation record — 2026-11-26 (synthetic MAX adapter fixture):**
+- Skill и reference прочитаны: `skills/max-bots/SKILL.md` и `references/max-platform-adapter.md`.
+- Fixture: локальный абстрактный MAX adapter получает state-changing событие с синтетическим event ID `max-event-501`; тот же event доставляется повторно. Callback запрашивает изменение состояния от пользователя без требуемой роли. Конкретные MAX endpoint, поля подписи и payload намеренно не задавались, поскольку их нельзя выводить из Telegram Bot API.
+- First-pass checks: Skill правильно запрещает переносить Telegram API semantics в MAX и требует проверять webhook secret/signature по официальной документации. Однако reference требовал сохранять ID события, но не связывал это атомарно с durable queue/outbox. Также не было явного требования проверять право на callback на сервере.
+- Failure simulation: процесс сохраняет marker как обработанный, затем падает до сохранения задания. Повторная доставка распознаётся как duplicate, но задание отсутствует — событие потеряно. Клиентская проверка роли или скрытие кнопки не блокируют прямой вызов callback.
+- First-pass score: **9/10** (task fit 2, procedure 1, accuracy 2, safety 1, deliverable 2).
+- Correction: Skill и reference требуют атомарной транзакции для idempotency marker и durable queue/outbox item, acknowledgement после durable acceptance там, где это допускает контракт платформы, идемпотентного worker и серверной проверки прав для каждого state-changing действия. Уточнено, что конкретный механизм webhook authentication должен быть подтверждён документацией MAX.
+- Re-test: сбой до commit оставляет и marker, и задание несохранёнными; повторная доставка сохраняет оба; последующий duplicate не создаёт второе задание; повторный запуск worker не повторяет бизнес-эффект; callback от пользователя без роли отклоняется сервером. Все проверки абстрактного адаптера пройдены.
+- Final score: **10/10** (task fit 2, procedure 2, accuracy 2, safety 2, deliverable 2).
+- Limitations: синтетический адаптер и транзакционная модель; не использовались реальный MAX bot/API, официальные payload, webhook signature/header, SDK, database isolation/unique constraints или production webhook. MAX-specific contract и live delivery не подтверждены. No baseline run without the Skill.
