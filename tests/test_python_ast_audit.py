@@ -79,8 +79,8 @@ class PythonAstAuditTests(unittest.TestCase):
     def test_local_module_takes_precedence_over_stdlib_name(self):
         with tempfile.TemporaryDirectory() as temp:
             project = Path(temp)
-            (project / "json.py").write_text("VALUE = 1\\n", encoding="utf-8")
-            (project / "main.py").write_text("import json\\n", encoding="utf-8")
+            (project / "json.py").write_text("VALUE = 1\n", encoding="utf-8")
+            (project / "main.py").write_text("import json\n", encoding="utf-8")
 
             code, report = self.run_audit(project)
 
@@ -92,9 +92,9 @@ class PythonAstAuditTests(unittest.TestCase):
             project = Path(temp)
             namespace = project / "vendor" / "tools"
             namespace.mkdir(parents=True)
-            (namespace / "helper.py").write_text("VALUE = 1\\n", encoding="utf-8")
+            (namespace / "helper.py").write_text("VALUE = 1\n", encoding="utf-8")
             (project / "main.py").write_text(
-                "import vendor.tools.helper\\n", encoding="utf-8"
+                "import vendor.tools.helper\n", encoding="utf-8"
             )
 
             code, report = self.run_audit(project)
