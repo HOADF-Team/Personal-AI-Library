@@ -34,12 +34,13 @@ Keep these responsibilities separate. Do not copy full tool records into Skills 
 1. Search `AI-Toolbox/CATALOG/tools.json` and existing `TOOLS/**/TOOL.md` records before searching the web or proposing a new dependency.
 2. Read the full record for each plausible tool. Check its current status, version/pinning guidance, operating-system support, license, dependencies, permissions, network requirements, cost, installation effects and limitations.
 3. Follow [AI-Toolbox environment discovery](https://github.com/HOADF-Team/AI-Toolbox/blob/main/TESTS/ENVIRONMENT-DISCOVERY.md) in the target environment when available. Prefer read-only discovery first.
-4. Verify actual availability in the target environment using the documented version or health check. Distinguish:
+4. When inventory is available, run the Toolbox preflight: generate `inventory.json` with `scripts/inventory.py`, match it using `scripts/match_inventory.py`, then check only the selected Skill IDs with `scripts/check_skill_tools.py --skill <skill-id> --matches matches.json`. Interpret `ready` as declared prerequisites detected, `blocked` as all alternatives explicitly missing, and `unknown` as insufficient probe evidence. This is not a functional test; review the Skill and TOOL.md records and perform task-specific checks.
+5. Verify actual availability in the target environment using the documented version or health check. Distinguish:
    - catalog record exists;
    - executable/package is installed in this runtime;
    - tool is available through a connector or hosted service;
    - software is installed on the user's separate device.
-5. Reuse a compatible existing installation. Do not reinstall just because the catalog says `tested`.
+6. Reuse a compatible existing installation. Do not reinstall just because the catalog says `tested`.
 
 ### Step D — decide whether installation is justified
 
