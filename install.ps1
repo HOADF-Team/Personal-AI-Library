@@ -126,26 +126,38 @@ $processedSkills = @{}
 foreach ($folder in $validSkillFolders) {
     $targetSkillDir = Join-Path $targetRoot $folder.Name
 
-    if ((Test-Path -LiteralPath $targetSkillDir) -and -not $Force) {
-        Write-Host "Already exists, skipping: $($folder.Name) (use -Force to update)"
-        continue
-    }
-
     $processedSkills[$folder.Name] = $true
     $sourceFiles = @(Get-ChildItem -LiteralPath $folder.FullName -File -Recurse)
+    $copiedCount = 0
+    $preservedCount = 0
 
     foreach ($sourceFile in $sourceFiles) {
         $relativePath = $sourceFile.FullName.Substring($sourceRoot.Length).TrimStart('\', '/')
         $relativePath = $relativePath.Replace('/', '\')
         $destinationPath = Get-SafeTargetPath -RelativePath $relativePath -ExpectedRoot $targetRoot
         $destinationDirectory = Split-Path -Parent $destinationPath
+        $sourceHash = Get-FileHashValue -Path $sourceFile.FullName
+
+        if ((Test-Path -LiteralPath $destinationPath -PathType Leaf) -and -not $Force) {
+            $currentHash = Get-FileHashValue -Path $destinationPath
+            $wasManaged = $managedFiles.ContainsKey($relativePath)
+            if (-not $wasManaged -or $currentHash -ne $managedFiles[$relativePath]) {
+                # Never overwrite an untracked or user-modified file without -Force.
+                $preservedCount++
+                continue
+            }
+        }
 
         New-Item -ItemType Directory -Force -Path $destinationDirectory | Out-Null
-        Copy-Item -LiteralPath $sourceFile.FullName -Destination $destinationPath -Force
-        $managedFiles[$relativePath] = Get-FileHashValue -Path $destinationPath
+        if (-not (Test-Path -LiteralPath $destinationPath -PathType Leaf) -or
+            (Get-FileHashValue -Path $destinationPath) -ne $sourceHash) {
+            Copy-Item -LiteralPath $sourceFile.FullName -Destination $destinationPath -Force
+            $copiedCount++
+        }
+        $managedFiles[$relativePath] = $sourceHash
     }
 
-    Write-Host "Installed/updated: $($folder.Name)"
+    Write-Host "Installed/updated: $($folder.Name) (copied: $copiedCount; preserved: $preservedCount)"
 }
 
 if ($Force -and $hasPreviousManifest) {
