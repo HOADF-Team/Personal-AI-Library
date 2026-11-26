@@ -84,7 +84,7 @@ class MarkdownLinkValidationTests(unittest.TestCase):
             skill_dir = root / "skills" / "demo"
             skill_dir.mkdir(parents=True)
             (skill_dir / "SKILL.md").write_text(
-                "---\\nname: demo\\ndescription: Example skill.\\n---\\n# Demo\\n",
+                "---\nname: demo\ndescription: Example skill.\n---\n# Demo\n",
                 encoding="utf-8",
             )
 
