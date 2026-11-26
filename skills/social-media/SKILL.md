@@ -1,6 +1,6 @@
 ---
 name: social-media
-description: "Планирование и подготовка контента для Telegram, X/Twitter и GitHub-профиля: посты, треды, анонсы, контент-план и аналитика."
+description: "Подготовка и адаптация конкретных постов, тредов и анонсов для Telegram, X/Twitter и GitHub. Для календаря, рубрик и стратегии публикаций используй content-planning."
 ---
 
 # Social media
