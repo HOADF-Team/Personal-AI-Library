@@ -160,7 +160,7 @@ try {
     # release before continuing.
     $interrupted = $false
     try {
-        & (Join-Path $versionB "install.ps1") -Force -TestFailAfterChanges 1 -TargetRoot $rollbackTarget
+        & (Join-Path $versionB "install.ps1") -Force -TestFailAfterChanges 3 -TargetRoot $rollbackTarget
     }
     catch {
         if ($_.Exception.Message -match "Injected installer failure") {
@@ -230,7 +230,7 @@ try {
         throw "Installer modified a file outside the installation folder."
     }
 
-    Write-Host "Installer tests passed: copy, manifest-less reinstall, missing-file restoration, user-file preservation, force-update, safe stale-file cleanup and manifest path validation."
+    Write-Host "Installer tests passed: copy, reinstall, user-file preservation, force-update, stale-file cleanup, interrupted-update recovery and manifest path validation."
 }
 finally {
     if (Test-Path -LiteralPath $invalidSourceDir) {
