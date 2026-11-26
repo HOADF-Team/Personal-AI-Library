@@ -29,6 +29,10 @@ Notable changes to Personal AI Library are recorded here. This file tracks repos
 - Strengthened `devops-vps` secret-handling guidance: systemd unit output, journal entries, and process command lines are treated as potentially sensitive and must be redacted before sharing.
 - Recorded the simulated `devops-vps` pilot evaluation and its safety-guidance correction.
 
+
+### Added
+- Recorded the synthetic `crypto-market-analysis` evaluation covering conflicting timeframes, market breadth, BTC dominance, funding, open interest and liquidity deterioration.
+
 ## 2026-11-25
 
 ### Added
