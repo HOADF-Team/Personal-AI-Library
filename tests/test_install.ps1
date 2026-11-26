@@ -155,6 +155,31 @@ try {
         throw "Rollback did not remove a file introduced by the newer version."
     }
 
+    # Simulate a process interruption after the first committed file mutation.
+    $interrupted = $false
+    try {
+        & (Join-Path $versionB "install.ps1") -Force -TargetRoot $rollbackTarget -TestFailAfterMutation 1
+    }
+    catch {
+        $interrupted = $true
+    }
+    if (-not $interrupted) {
+        throw "The installer failpoint did not interrupt the update."
+    }
+    $transactionJournal = Join-Path $rollbackTarget ".personal-ai-library-transaction\journal.json"
+    if (-not (Test-Path -LiteralPath $transactionJournal -PathType Leaf)) {
+        throw "An interrupted update did not retain its recovery journal."
+    }
+
+    # The next invocation must restore the pre-update state, then complete B.
+    & (Join-Path $versionB "install.ps1") -Force -TargetRoot $rollbackTarget
+    if ((Get-Content -LiteralPath (Join-Path $rollbackTarget "sample-skill\SKILL.md") -Raw).Trim() -ne "version B") {
+        throw "The installer did not recover and complete the interrupted update."
+    }
+    if (Test-Path -LiteralPath (Join-Path $rollbackTarget ".personal-ai-library-transaction")) {
+        throw "A completed transaction left recovery data behind."
+    }
+
     # A linked parent directory must be rejected before the installer creates
     # the target directory through that link.
     New-Item -ItemType Directory -Path $realParent | Out-Null
