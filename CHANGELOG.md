@@ -21,8 +21,6 @@ Notable changes to Personal AI Library are recorded here. This file tracks repos
 - Clarified in the README that `0.1.0` is a development version marker and not a published GitHub Release.
 - Added a Windows regression test for rolling back from a newer simulated installation to an older one, including restoration of removed files and cleanup of newer-only files.
 - Documented the tested manual rollback procedure and updated repository self-links to the organization address.
-- Added a transaction journal and verified backups for installer-managed destination paths and the manifest; the next run attempts guarded rollback after an interrupted update.
-- Added a Windows regression scenario that interrupts an update after a file mutation and verifies recovery on the next invocation.
 
 
 ### Added
