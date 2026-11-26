@@ -5,6 +5,9 @@ Notable changes to Personal AI Library are recorded here. This file tracks repos
 ## 2026-11-26
 
 ### Added
+- Recorded the synthetic `trading-bot-audit` ledger evaluation covering partial fills, duplicate event delivery, fees, funding and closed-trade statistics.
+
+### Added
 - Recorded a multi-module `python-development` pilot tracing an environment-variable type mismatch from settings through a worker call, with four passing regression checks.
 
 ### Added
