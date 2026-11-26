@@ -17,6 +17,8 @@ Notable changes to Personal AI Library are recorded here. This file tracks repos
 - Refreshed `SOURCES.md` with current official OpenAI Skills and evaluation documentation links and the verification date.
 - Hardened installer target validation to reject reparse-point ancestors before creating the destination, with a Windows regression test for junction-based paths.
 - Clarified in the README that non-forced installation is file-level: missing files are added while untracked and locally modified files are preserved.
+- Added `VERSION` (`0.1.0`) as the current development version and documented Semantic Versioning, release checks, manual GitHub Releases, and update steps in `RELEASING.md`.
+- Clarified in the README that `0.1.0` is a development version marker and not a published GitHub Release.
 
 
 ### Added
