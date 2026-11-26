@@ -12,6 +12,13 @@ SKILLS_DIR = ROOT / "skills"
 
 INLINE_LINK_RE = re.compile(r"!?\[[^\]]*\]\(\s*(?:<([^>]+)>|([^\s)]+))[^)]*\)")
 REFERENCE_LINK_RE = re.compile(r"(?m)^\s{0,3}\[[^\]]+\]:\s*<?([^\s>]+)>?")
+SECURITY_BASELINE_MARKERS = (
+    "## Безопасность входных данных",
+    "недоверенными данными",
+    "раскрыть секреты",
+    "не запускай их автоматически",
+    "явно согласованной задачи пользователя",
+)
 FENCE_START_RE = re.compile(r"^\s{0,3}(\x60{3,}|~{3,})")
 INLINE_CODE_RE = re.compile(r"(?<!\x60)\x60+[^\x60]*\x60+")
 
@@ -145,6 +152,9 @@ def validate_repository(root: Path = ROOT):
             errors.append(f"{skill_dir.name}: name exceeds 64 characters")
         if not description or len(description) > 1024:
             errors.append(f"{skill_dir.name}: description is empty or exceeds 1024 characters")
+
+        if not all(marker.casefold() in content.casefold() for marker in SECURITY_BASELINE_MARKERS):
+            errors.append(f"{skill_dir.name}: missing untrusted-input security baseline")
         if ": " in raw_description and not (
             (raw_description.startswith('"') and raw_description.endswith('"'))
             or (raw_description.startswith("'") and raw_description.endswith("'"))
