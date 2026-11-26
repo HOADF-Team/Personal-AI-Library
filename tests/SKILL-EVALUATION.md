@@ -142,3 +142,20 @@ Start with these five Skills. Expand the evaluation set only when a real task or
 - Score: **10/10** (task fit 2, procedure 2, accuracy 2, safety 2, deliverable 2).
 - Limitations: one small synchronous package and environment-variable flow; no concurrency, async tasks, database, third-party dependency or deployed service tested. No baseline run without the Skill.
 - Skill changes required: none. The existing procedure to inspect the full traceback, identify project frames, verify actual value types, trace configuration across modules, and add regression checks was sufficient.
+
+
+### 9. `trading-bot-audit` — fills, fees, funding and duplicate events
+
+**Evaluation record — 2026-11-26 (synthetic linear-perpetual ledger fixture):**
+- Repository commit before evaluation: `9b85ba51b99a6d8f7748fccf2bec596282f64ffb`.
+- Skill and reference read: `skills/trading-bot-audit/SKILL.md` and `references/pnl-and-trade-reconciliation.md`.
+- Fixture: four synthetic positions in one linear perpetual settlement currency. Three positions are fully closed; one has entry quantity 2.0 and exit quantity 0.5 and must remain open with 1.5 units residual.
+- Trade A (long): entry fills 1 @ 100 and 1 @ 102; exit fills 1 @ 105 and 1 @ 106. Average entry 101, average exit 105.5, gross PnL +9.000. Entry/exit fees total 0.413; funding paid 0.050; net PnL **+8.537**.
+- Trade B (short): 1 @ 200 in, 1 @ 198 out; gross +2.000; fees 0.199; funding received 0.020; net PnL **+1.821**.
+- Trade C (short): 1 @ 50 in, 1 @ 52 out; gross -2.000; fees 0.102; funding paid 0.010; net PnL **-2.112**.
+- Trade D: entry quantity 2.0, exit quantity 0.5. Correctly classified as still open with 1.5 residual; excluded from closed-trade win rate and expectancy.
+- An exact duplicate delivery of Trade A's exit event ID was included to simulate reconnect/re-delivery. Deduplicating by event ID prevents the extra fill and fee from being counted twice. The Skill calls for checking duplicate events; the reference also says to group executions and not count each partial fill as a separate completed trade.
+- Closed-trade statistics: 3 closed trades; 2 profitable, 1 losing; win rate **66.67%**; total net PnL **+8.246**; expectancy **+2.7487 per closed trade**; profit factor **4.9044**. These are fixture calculations, not strategy-performance evidence.
+- Score: **10/10** (task fit 2, procedure 2, accuracy 2, safety 2, deliverable 2). No orders, account changes, production database access or external API calls.
+- Skill changes required: none for this fixture. The workflow correctly separates partial fills, checks duplicated event delivery, applies fee and funding cashflows, and excludes residual open quantity from closed-trade statistics.
+- Limitations: synthetic linear contract only; all fees and funding were pre-normalized to one settlement currency. No exchange API schema, inverse contract, multiplier, real ledger export, timezone boundary, reconnect implementation or production database was tested. No baseline run without the Skill.
