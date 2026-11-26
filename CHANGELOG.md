@@ -5,6 +5,12 @@ Notable changes to Personal AI Library are recorded here. This file tracks repos
 ## 2026-11-26
 
 ### Added
+- Recorded the automation-vps webhook evaluation and strengthened atomic event acceptance to prevent lost events between deduplication and queue insertion.
+
+### Changed
+- Updated automation-vps webhook guidance to require durable atomic enqueue and idempotent worker-side effects.
+
+### Added
 - Recorded the synthetic `trading-bot-audit` ledger evaluation covering partial fills, duplicate event delivery, fees, funding and closed-trade statistics.
 
 ### Added
