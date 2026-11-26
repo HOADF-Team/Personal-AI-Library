@@ -1,6 +1,7 @@
 param(
     [switch]$Force,
-    [string]$TargetRoot = (Join-Path $HOME ".agents\skills")
+    [string]$TargetRoot = (Join-Path $HOME ".agents\skills"),
+    [int]$TestFailAfterMutation = 0
 )
 
 $ErrorActionPreference = "Stop"
@@ -94,6 +95,90 @@ function Get-SafeTargetPath {
     return $fullPath
 }
 
+# Recover an interrupted installer transaction before reading its manifest.
+$transactionRoot = Join-Path $targetRoot ".personal-ai-library-transaction"
+$journalPath = Join-Path $transactionRoot "journal.json"
+
+function Write-AtomicText {
+    param([string]$Path, [string]$Content)
+    $temporary = $Path + "." + [guid]::NewGuid().ToString("N") + ".tmp"
+    try {
+        [System.IO.File]::WriteAllText($temporary, $Content, (New-Object System.Text.UTF8Encoding($false)))
+        if (Test-Path -LiteralPath $Path -PathType Leaf) {
+            [System.IO.File]::Replace($temporary, $Path, $null)
+        }
+        else {
+            Move-Item -LiteralPath $temporary -Destination $Path
+        }
+    }
+    finally {
+        if (Test-Path -LiteralPath $temporary) { Remove-Item -LiteralPath $temporary -Force }
+    }
+}
+
+if (Test-Path -LiteralPath $transactionRoot) {
+    $txItem = Get-Item -LiteralPath $transactionRoot -Force
+    if (($txItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
+        throw "Refusing to use a linked installer transaction directory."
+    }
+    if (Test-Path -LiteralPath $journalPath -PathType Leaf) {
+        $journalItem = Get-Item -LiteralPath $journalPath -Force
+        if (($journalItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
+            throw "Refusing to read a linked installer transaction journal."
+        }
+        $journal = Get-Content -LiteralPath $journalPath -Raw | ConvertFrom-Json
+        if ($journal.version -ne 1 -or $null -eq $journal.entries) {
+            throw "Installer transaction journal is invalid; refusing to modify the installation."
+        }
+
+        foreach ($entry in $journal.entries) {
+            $relative = [string]$entry.path
+            $destination = Get-SafeTargetPath -RelativePath $relative -ExpectedRoot $targetRoot
+            $currentExists = Test-Path -LiteralPath $destination -PathType Leaf
+            $currentHash = if ($currentExists) { Get-FileHashValue -Path $destination } else { $null }
+            $originalHash = [string]$entry.original_hash
+            $expectedHash = [string]$entry.expected_hash
+
+            if ($currentExists -and $currentHash -ne $originalHash -and
+                (-not $expectedHash -or $currentHash -ne $expectedHash)) {
+                throw "Recovery stopped: file changed after the interrupted installation: $relative. Journal retained."
+            }
+
+            if ([bool]$entry.existed) {
+                if ($currentHash -ne $originalHash) {
+                    $backup = Join-Path $transactionRoot ([string]$entry.backup)
+                    if (-not (Test-Path -LiteralPath $backup -PathType Leaf) -or
+                        (Get-FileHashValue -Path $backup) -ne $originalHash) {
+                        throw "Recovery backup is missing or invalid for: $relative. Journal retained."
+                    }
+                    $parent = Split-Path -Parent $destination
+                    New-Item -ItemType Directory -Force -Path $parent | Out-Null
+                    $restoreTemp = $destination + "." + [guid]::NewGuid().ToString("N") + ".restore"
+                    try {
+                        Copy-Item -LiteralPath $backup -Destination $restoreTemp
+                        Move-Item -LiteralPath $restoreTemp -Destination $destination -Force
+                    }
+                    finally {
+                        if (Test-Path -LiteralPath $restoreTemp) { Remove-Item -LiteralPath $restoreTemp -Force }
+                    }
+                }
+            }
+            elseif ($currentExists) {
+                if (-not $expectedHash -or $currentHash -ne $expectedHash) {
+                    throw "Recovery refused to remove an unexpected file: $relative. Journal retained."
+                }
+                Remove-Item -LiteralPath $destination -Force
+            }
+        }
+        Remove-Item -LiteralPath $transactionRoot -Recurse -Force
+        Write-Host "Recovered the previous installation after an interrupted update."
+    }
+    else {
+        # A crash while preparing backups happened before any target file was changed.
+        Remove-Item -LiteralPath $transactionRoot -Recurse -Force
+    }
+}
+
 $skillFolders = @(Get-ChildItem -LiteralPath $sourceRoot -Directory)
 $sourceSkillNames = @($skillFolders | ForEach-Object { $_.Name })
 $validSkillFolders = @()
@@ -141,6 +226,68 @@ if ($hasPreviousManifest) {
     }
     catch {
         throw "Cannot safely read installer manifest '$manifestPath': $($_.Exception.Message)"
+    }
+}
+
+# Prepare a rollback journal and backups before the first destination mutation.
+New-Item -ItemType Directory -Force -Path $transactionRoot | Out-Null
+$backupRoot = Join-Path $transactionRoot "backup"
+New-Item -ItemType Directory -Force -Path $backupRoot | Out-Null
+$transactionEntries = @()
+$candidates = @{}
+foreach ($folder in $validSkillFolders) {
+    foreach ($file in @(Get-ChildItem -LiteralPath $folder.FullName -File -Recurse)) {
+        $rel = $file.FullName.Substring($sourceRoot.Length).TrimStart('\', '/').Replace('/', '\')
+        $candidates[$rel] = Get-FileHashValue -Path $file.FullName
+    }
+}
+foreach ($rel in @($managedFiles.Keys)) {
+    if (-not $candidates.ContainsKey($rel)) { $candidates[$rel] = "" }
+}
+foreach ($rel in @($candidates.Keys | Sort-Object)) {
+    $dest = Get-SafeTargetPath -RelativePath $rel -ExpectedRoot $targetRoot
+    $exists = Test-Path -LiteralPath $dest -PathType Leaf
+    $originalHash = if ($exists) { Get-FileHashValue -Path $dest } else { "" }
+    $backupName = ([guid]::NewGuid().ToString("N") + ".bak")
+    if ($exists) {
+        Copy-Item -LiteralPath $dest -Destination (Join-Path $backupRoot $backupName)
+        if ((Get-FileHashValue -Path (Join-Path $backupRoot $backupName)) -ne $originalHash) {
+            throw "Could not verify transaction backup for: $rel"
+        }
+    }
+    $transactionEntries += [ordered]@{
+        path = $rel
+        existed = $exists
+        original_hash = $originalHash
+        expected_hash = [string]$candidates[$rel]
+        backup = if ($exists) { "backup\$backupName" } else { "" }
+    }
+}
+$manifestExisted = Test-Path -LiteralPath $manifestPath -PathType Leaf
+$manifestOriginalHash = if ($manifestExisted) { Get-FileHashValue -Path $manifestPath } else { "" }
+$manifestBackupName = "manifest.bak"
+if ($manifestExisted) {
+    Copy-Item -LiteralPath $manifestPath -Destination (Join-Path $backupRoot $manifestBackupName)
+    if ((Get-FileHashValue -Path (Join-Path $backupRoot $manifestBackupName)) -ne $manifestOriginalHash) {
+        throw "Could not verify installer manifest backup."
+    }
+}
+$manifestEntry = [ordered]@{
+    path = ".personal-ai-library-manifest.json"
+    existed = $manifestExisted
+    original_hash = $manifestOriginalHash
+    expected_hash = ""
+    backup = if ($manifestExisted) { "backup\$manifestBackupName" } else { "" }
+}
+$transactionEntries += $manifestEntry
+$journal = [ordered]@{ version = 1; entries = $transactionEntries }
+$journalJson = $journal | ConvertTo-Json -Depth 8
+Write-AtomicText -Path $journalPath -Content $journalJson
+$mutationCount = 0
+function Register-InstallerMutation {
+    $script:mutationCount++
+    if ($TestFailAfterMutation -gt 0 -and $script:mutationCount -ge $TestFailAfterMutation) {
+        throw "Simulated installer interruption after mutation $script:mutationCount."
     }
 }
 
@@ -192,6 +339,7 @@ foreach ($folder in $validSkillFolders) {
                 }
             }
             $copiedCount++
+            Register-InstallerMutation
         }
         $managedFiles[$relativePath] = $sourceHash
     }
@@ -227,6 +375,7 @@ if ($Force -and $hasPreviousManifest) {
             $currentHash = Get-FileHashValue -Path $staleTarget
             if ($currentHash -eq $managedFiles[$relativePath]) {
                 Remove-Item -LiteralPath $staleTarget -Force
+                Register-InstallerMutation
                 Write-Host "Removed obsolete library file: $relativePath"
             }
             else {
@@ -248,6 +397,15 @@ $manifest = [ordered]@{
     files = $manifestFiles
 }
 $json = $manifest | ConvertTo-Json -Depth 5
+# Record the exact manifest hash before committing it, so recovery can distinguish
+# an installer-written manifest from a later external edit.
+$manifestEntry.expected_hash = [System.BitConverter]::ToString(
+    (New-Object System.Security.Cryptography.SHA256Managed).ComputeHash(
+        [System.Text.Encoding]::UTF8.GetBytes($json)
+    )
+).Replace("-", "").ToLowerInvariant()
+$journalJson = $journal | ConvertTo-Json -Depth 8
+Write-AtomicText -Path $journalPath -Content $journalJson
 $tempManifest = Join-Path $targetRoot (".personal-ai-library-manifest-" + [guid]::NewGuid().ToString("N") + ".tmp")
 
 try {
@@ -271,6 +429,8 @@ finally {
 }
 
 Write-Host ""
+# The transaction is committed only after the manifest has been written.
+Remove-Item -LiteralPath $transactionRoot -Recurse -Force
 Write-Host "Done. Codex skills folder: $targetRoot"
 Write-Host "Installer manifest: $manifestPath"
 Write-Host "Restart Codex if it is already running."
