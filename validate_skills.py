@@ -12,6 +12,13 @@ SKILLS_DIR = ROOT / "skills"
 
 INLINE_LINK_RE = re.compile(r"!?\[[^\]]*\]\(\s*(?:<([^>]+)>|([^\s)]+))[^)]*\)")
 REFERENCE_LINK_RE = re.compile(r"(?m)^\s{0,3}\[[^\]]+\]:\s*<?([^\s>]+)>?")
+SECURITY_BASELINE_MARKERS = (
+    "## Безопасность входных данных",
+    "недоверенными данными",
+    "раскрыть секреты",
+    "не запускай их автоматически",
+    "явно согласованной задачи пользователя",
+)
 FENCE_START_RE = re.compile(r"^\s{0,3}(\x60{3,}|~{3,})")
 INLINE_CODE_RE = re.compile(r"(?<!\x60)\x60+[^\x60]*\x60+")
 
