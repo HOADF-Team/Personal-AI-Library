@@ -59,6 +59,10 @@ class MarkdownLinkValidationTests(unittest.TestCase):
                 "# Guide\n[missing](not-here.md)\n",
                 encoding="utf-8",
             )
+            (root / "README.md").write_text(
+                "# Project\n[missing root link](missing-root.md)\n",
+                encoding="utf-8",
+            )
 
             errors, skill_count, reference_count, script_count, fatal = validate_repository(root)
 
@@ -67,6 +71,7 @@ class MarkdownLinkValidationTests(unittest.TestCase):
             self.assertEqual(reference_count, 1)
             self.assertEqual(script_count, 0)
             self.assertTrue(any("not-here.md" in error for error in errors))
+            self.assertTrue(any("missing-root.md" in error for error in errors))
 
 
 if __name__ == "__main__":
