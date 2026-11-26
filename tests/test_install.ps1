@@ -48,6 +48,17 @@ try {
         throw "Without -Force, existing skill files should remain unchanged."
     }
 
+    # Simulate an interrupted install: a managed file is missing while the
+    # existing user-modified file must remain untouched on the recovery run.
+    Remove-Item -LiteralPath $referenceFile -Force
+    & $installer -TargetRoot $targetRoot
+    if (-not (Test-Path -LiteralPath $referenceFile -PathType Leaf)) {
+        throw "A subsequent install did not restore a missing managed file."
+    }
+    if ((Get-Content -LiteralPath $skillFile -Raw) -notmatch "local modified copy") {
+        throw "Recovery overwrote a user-modified managed file."
+    }
+
     & $installer -Force -TargetRoot $targetRoot
     if (-not (Test-Path -LiteralPath $localFile -PathType Leaf)) {
         throw "Force update removed a user-created file."
@@ -122,7 +133,7 @@ try {
         throw "Installer modified a file outside the installation folder."
     }
 
-    Write-Host "Installer tests passed: copy, skip-existing, force-update, user-file preservation, safe stale-file cleanup and manifest path validation."
+    Write-Host "Installer tests passed: copy, interrupted-install recovery, user-file preservation, force-update, safe stale-file cleanup and manifest path validation."
 }
 finally {
     if (Test-Path -LiteralPath $invalidSourceDir) {
