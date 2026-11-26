@@ -19,6 +19,8 @@ Notable changes to Personal AI Library are recorded here. This file tracks repos
 - Clarified in the README that non-forced installation is file-level: missing files are added while untracked and locally modified files are preserved.
 - Added `VERSION` (`0.1.0`) as the current development version and documented Semantic Versioning, release checks, manual GitHub Releases, and update steps in `RELEASING.md`.
 - Clarified in the README that `0.1.0` is a development version marker and not a published GitHub Release.
+- Added a Windows regression test for rolling back from a newer simulated installation to an older one, including restoration of removed files and cleanup of newer-only files.
+- Documented the tested manual rollback procedure and updated repository self-links to the organization address.
 
 
 ### Added
