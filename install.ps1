@@ -133,7 +133,18 @@ if (Test-Path -LiteralPath $transactionRoot) {
 
         foreach ($entry in $journal.entries) {
             $relative = [string]$entry.path
-            $destination = Get-SafeTargetPath -RelativePath $relative -ExpectedRoot $targetRoot
+            if ($relative -eq ".personal-ai-library-manifest.json") {
+                $destination = $manifestPath
+                if (Test-Path -LiteralPath $destination) {
+                    $manifestRecoveryItem = Get-Item -LiteralPath $destination -Force
+                    if (($manifestRecoveryItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
+                        throw "Recovery refused a linked installer manifest."
+                    }
+                }
+            }
+            else {
+                $destination = Get-SafeTargetPath -RelativePath $relative -ExpectedRoot $targetRoot
+            }
             $currentExists = Test-Path -LiteralPath $destination -PathType Leaf
             $currentHash = if ($currentExists) { Get-FileHashValue -Path $destination } else { $null }
             $originalHash = [string]$entry.original_hash
