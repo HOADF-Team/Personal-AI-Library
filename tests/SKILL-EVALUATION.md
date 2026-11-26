@@ -174,3 +174,17 @@ Start with these five Skills. Expand the evaluation set only when a real task or
 - Re-test: transaction fixture simulated a crash before commit, then retry and duplicate redelivery. The failed transaction left neither a processed marker nor a queue item; retry committed both; subsequent redelivery was rejected as duplicate. **All 3 transaction-state checks passed**, alongside the 5 initial signature/schema/deduplication/order checks.
 - Final score: **10/10** (task fit 2, procedure 2, accuracy 2, safety 2, deliverable 2). No messages, payments, external API calls or production changes.
 - Limitations: in-memory transaction simulation only; no actual database isolation/unique constraint, message broker, provider-specific signature scheme, HTTP timeout/retry behavior, 429/5xx handling or production webhook was exercised. No baseline run without the Skill.
+
+
+### 11. `crypto-market-analysis` — conflicting market regime signals
+
+**Evaluation record — 2026-11-26 (synthetic market snapshot):**
+- Repository commit before evaluation: `6407c270138c48dd9b39739363988f0bfe7e933a`.
+- Skill and reference read: `skills/crypto-market-analysis/SKILL.md` and `references/market-regime-checklist.md`.
+- Fixture: synthetic timestamped snapshot, explicitly labelled as test data and not live market data. BTC returns: +0.8% (1h), +2.4% (4h), −1.1% (1d); 4h volume 1.35× its supplied baseline; 4 of 10 large altcoins positive over 4h; BTC dominance +0.6 percentage points over 24h; median altcoin funding +0.040% per 8h versus supplied baseline +0.010%; open interest +8% over 24h; realized volatility +35%; spread 0.04% versus usual 0.02%; order-book depth −30%.
+- Deterministic checks: breadth = 40%; altcoin funding = 4× baseline; spread = 2× usual. BTC timeframes conflict (positive 1h/4h, negative 1d); breadth is narrow; dominance and OI rise; liquidity deteriorates.
+- Correct interpretation: **mixed/neutral**, not a clean risk-on regime. Short-term BTC strength and above-baseline volume are supportive, but narrow breadth, rising dominance, elevated funding, higher OI and weaker liquidity are counter-signals. These observations do not establish a buy/sell signal or a reliable probability.
+- Data discipline: source/exchange identifiers and actual observation timestamps were not supplied in this synthetic fixture; the result must disclose that limitation rather than invent them. No live market lookup, exchange API, account access or trade execution.
+- Score: **10/10** (task fit 2, procedure 2, accuracy 2, safety 2, deliverable 2).
+- Skill changes required: none for this case. The Skill and checklist explicitly require multiple timeframes, breadth, dominance, funding context, OI, liquidity, conflicting evidence and qualitative regime labels.
+- Limitations: one synthetic snapshot only; no live data freshness, exchange-to-exchange divergence, historical regime validation, event/news verification or predictive performance tested. No baseline run without the Skill.
