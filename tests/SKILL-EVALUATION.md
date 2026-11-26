@@ -126,3 +126,19 @@ Start with these five Skills. Expand the evaluation set only when a real task or
 - Score: **9/10** (task fit 2, procedure 2, accuracy 2, safety 2, deliverable 1). The diagnostic result is reproducible, but a real photograph and actual segmentation model were not tested.
 - Skill changes required: none. The current Skill and reference already require preserving the source, checking the alpha mask and difficult edges, detecting both leftover background and missing product pixels, and refusing to call a defective result finished.
 - Limitations: synthetic fixture only; no rembg/ONNX inference, real fabric texture, hairline/fur, shadows, JPEG artefacts or marketplace export workflow tested. The numeric metrics are possible here only because the synthetic fixture provides a known ground-truth mask; ordinary user photos generally do not.
+
+
+### 8. `python-development` — multi-module configuration flow
+
+**Evaluation record — 2026-11-26 (simulated package fixture):**
+- Repository commit before evaluation: `664466b2ef5f7635d19e43a8367bb6484f67315e`.
+- Skill and reference re-read: `skills/python-development/SKILL.md` and `references/debugging-runbook.md`.
+- Fixture package: `sample_app/main.py` calls `worker.run_once()`; `worker.py` obtains settings from `settings.load_settings()` and passes `settings["retry_delay"]` to `time.sleep()`.
+- Reproduced failure: `TypeError: 'str' object cannot be interpreted as an integer` at the `time.sleep()` call. Traceback showed the call chain through the entry point and worker module.
+- Root cause: the settings module returned the environment variable `RETRY_DELAY` as a string, although the worker's downstream API requires a numeric delay. The failure surfaced in the worker but originated in the settings module's type contract.
+- Minimal correction: parse the environment value as `float` in the settings module; raise a clear `ValueError` for non-numeric or negative values. Keep the worker interface unchanged; no dependency added and no broad exception handling.
+- Re-test: application module run exited with code 0 and printed `done`. Four isolated regression checks passed: numeric string, unset variable/default, invalid string, and negative value. The runtime also emitted a separate spreadsheet warmup diagnostic on stderr; it was unrelated to the fixture and did not change the application's exit code or result.
+- No repository application code was changed; no production project or external service was accessed. Fixture and checks ran in an isolated temporary directory; no test file was committed.
+- Score: **10/10** (task fit 2, procedure 2, accuracy 2, safety 2, deliverable 2).
+- Limitations: one small synchronous package and environment-variable flow; no concurrency, async tasks, database, third-party dependency or deployed service tested. No baseline run without the Skill.
+- Skill changes required: none. The existing procedure to inspect the full traceback, identify project frames, verify actual value types, trace configuration across modules, and add regression checks was sufficient.
