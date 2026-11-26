@@ -41,6 +41,16 @@ Do not publish a release from a commit with failing or incomplete required check
 3. Run `install.ps1 -Force` from the extracted folder.
 4. Restart Codex if it was already running.
 
+## Rolling back to a previous release
+
+1. Keep a backup of any locally modified Skill files.
+2. Download and extract the ZIP archive of the previous release.
+3. Run that older release's `install.ps1 -Force` against the same target directory.
+4. The installer restores files present in the older release and removes newer library-managed files only when their hashes still match the current manifest.
+5. Review the installed files and restart Codex.
+
+The rollback path is covered by a Windows regression test that installs a simulated older version, updates to a newer version, and then restores the older version. This does not provide an automatic backup of local edits or a full filesystem snapshot.
+
 The installer manifest's `version: 1` is the **manifest format version**, not the library version. The installer currently does not enforce version ordering or automatically download updates. Users choose which release archive to install.
 
 ## Release policy
