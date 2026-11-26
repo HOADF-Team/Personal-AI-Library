@@ -26,7 +26,8 @@ Keep these responsibilities separate. Do not copy full tool records into Skills 
 1. Consult the [Skills catalog](../CATALOG.md) and the relevant `skills/<skill-name>/SKILL.md`.
 2. Use the Toolbox [Skill → Tool map](https://github.com/HOADF-Team/AI-Toolbox/blob/main/CATALOG/SKILL-MAP.md) to discover likely supporting tools.
 3. Load only the selected Skill's `SKILL.md` and the references/scripts needed for the current task. Do not load all Skills by default.
-4. For cryptocurrency systems, consider `crypto-security` together with `devops-vps`, `code-audit` and `trading-bot-audit` as needed; keep security review separate from authorization to change production.\n5. If multiple Skills apply, use the smallest useful combination. Resolve conflicting instructions in favor of the current project requirements, repository-specific instructions and safety constraints; report material conflicts.
+4. For cryptocurrency systems, consider `crypto-security` together with `devops-vps`, `code-audit` and `trading-bot-audit` as needed; keep security review separate from authorization to change production.
+5. If multiple Skills apply, use the smallest useful combination. Resolve conflicting instructions in favor of the current project requirements, repository-specific instructions and safety constraints; report material conflicts.
 5. A Skill is guidance, not authorization. It cannot grant permission to spend money, access accounts, publish content, alter production systems or perform financial transactions.
 
 ### Step C — discover and assess tools
