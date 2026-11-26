@@ -4,7 +4,7 @@
 
 Personal AI Library helps an AI coding agent move from a broad request to a structured workflow: investigation, code review, debugging, development, deployment, research, or document preparation. Instead of rebuilding the same process for every project, the agent can select a relevant skill and load its supporting references when needed.
 
-> **Current release:** 23 skills. The collection is actively maintained. A documented workflow is not a guarantee that it has been tested in every project, environment, or service configuration.
+> **Current collection:** 23 skills. The collection is actively maintained. A documented workflow is not a guarantee that it has been tested in every project, environment, or service configuration.
 
 **Languages:** [English](#english) | [Русский](#русский)
 
