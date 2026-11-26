@@ -76,6 +76,32 @@ class PythonAstAuditTests(unittest.TestCase):
             ]
             self.assertEqual(candidates, ["pkg.missing"])
 
+    def test_local_module_takes_precedence_over_stdlib_name(self):
+        with tempfile.TemporaryDirectory() as temp:
+            project = Path(temp)
+            (project / "json.py").write_text("VALUE = 1\\n", encoding="utf-8")
+            (project / "main.py").write_text("import json\\n", encoding="utf-8")
+
+            code, report = self.run_audit(project)
+
+            self.assertEqual(code, 0)
+            self.assertEqual(report["unresolved_import_candidates"], 0)
+
+    def test_accepts_namespace_packages_without_init_files(self):
+        with tempfile.TemporaryDirectory() as temp:
+            project = Path(temp)
+            namespace = project / "vendor" / "tools"
+            namespace.mkdir(parents=True)
+            (namespace / "helper.py").write_text("VALUE = 1\\n", encoding="utf-8")
+            (project / "main.py").write_text(
+                "import vendor.tools.helper\\n", encoding="utf-8"
+            )
+
+            code, report = self.run_audit(project)
+
+            self.assertEqual(code, 0)
+            self.assertEqual(report["unresolved_import_candidates"], 0)
+
     def test_reports_syntax_error_and_skips_virtual_environment(self):
         with tempfile.TemporaryDirectory() as temp:
             project = Path(temp)
