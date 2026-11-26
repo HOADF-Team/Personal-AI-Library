@@ -273,4 +273,6 @@ finally {
 Write-Host ""
 Write-Host "Done. Codex skills folder: $targetRoot"
 Write-Host "Installer manifest: $manifestPath"
+Remove-Item -LiteralPath $transactionPath -Force
+Remove-Item -LiteralPath $backupRoot -Recurse -Force
 Write-Host "Restart Codex if it is already running."
