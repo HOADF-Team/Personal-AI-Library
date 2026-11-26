@@ -155,6 +155,39 @@ try {
         throw "Rollback did not remove a file introduced by the newer version."
     }
 
+    # Simulate a process interruption after the newer version has changed at
+    # least one destination. The next invocation must restore the exact prior
+    # release before continuing.
+    $interrupted = $false
+    try {
+        & (Join-Path $versionB "install.ps1") -Force -TestFailAfterChanges 3 -TargetRoot $rollbackTarget
+    }
+    catch {
+        if ($_.Exception.Message -match "Injected installer failure") {
+            $interrupted = $true
+        }
+        else {
+            throw
+        }
+    }
+    if (-not $interrupted) {
+        throw "The installer failure-injection point was not reached."
+    }
+
+    & (Join-Path $versionA "install.ps1") -TargetRoot $rollbackTarget
+    if ((Get-Content -LiteralPath (Join-Path $rollbackTarget "sample-skill\\SKILL.md") -Raw).Trim() -ne "version A") {
+        throw "Interrupted update recovery did not restore the previous Skill version."
+    }
+    if (-not (Test-Path -LiteralPath (Join-Path $rollbackTarget "sample-skill\\legacy.md") -PathType Leaf)) {
+        throw "Interrupted update recovery did not restore the previous release's removed file."
+    }
+    if (Test-Path -LiteralPath (Join-Path $rollbackTarget "sample-skill\\new.md")) {
+        throw "Interrupted update recovery left a file introduced by the failed update."
+    }
+    if (Test-Path -LiteralPath (Join-Path $rollbackTarget ".personal-ai-library-transaction.json")) {
+        throw "Interrupted update recovery left its transaction journal behind."
+    }
+
     # A linked parent directory must be rejected before the installer creates
     # the target directory through that link.
     New-Item -ItemType Directory -Path $realParent | Out-Null
@@ -197,7 +230,7 @@ try {
         throw "Installer modified a file outside the installation folder."
     }
 
-    Write-Host "Installer tests passed: copy, manifest-less reinstall, missing-file restoration, user-file preservation, force-update, safe stale-file cleanup and manifest path validation."
+    Write-Host "Installer tests passed: copy, reinstall, user-file preservation, force-update, stale-file cleanup, interrupted-update recovery and manifest path validation."
 }
 finally {
     if (Test-Path -LiteralPath $invalidSourceDir) {
