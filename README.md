@@ -95,7 +95,7 @@ Run the Windows installer tests from PowerShell:
 .\tests\test_install.ps1
 ```
 
-A repeatable manual evaluation protocol with five pilot Skills is available in [tests/SKILL-EVALUATION.md](tests/SKILL-EVALUATION.md).
+The manual evaluation protocol and its initial five pilot cases are documented in [tests/SKILL-EVALUATION.md](tests/SKILL-EVALUATION.md). The same file also contains additional scenario-based evaluation records for the wider skill collection.
 
 GitHub Actions runs automated checks on pushes and pull requests. The workflow validates the skill structure and tests the installer on Windows PowerShell 5.1 and PowerShell 7.
 
@@ -249,7 +249,7 @@ python -m unittest discover -s tests -v
 .\tests\test_install.ps1
 ```
 
-Повторяемая методика ручной оценки пяти пилотных Skills описана в [tests/SKILL-EVALUATION.md](tests/SKILL-EVALUATION.md).
+Методика ручной оценки и пять первоначальных пилотных сценариев описаны в [tests/SKILL-EVALUATION.md](tests/SKILL-EVALUATION.md). В том же файле добавлены результаты дополнительных сценарных оценок остальных навыков.
 
 GitHub Actions автоматически выполняет проверки при push и pull request. Workflow проверяет структуру навыков и установщик в Windows PowerShell 5.1 и PowerShell 7.
 
