@@ -13,6 +13,28 @@ if (-not (Test-Path -LiteralPath $sourceRoot -PathType Container)) {
     throw "Skills folder not found: $sourceRoot"
 }
 
+# Check the nearest existing ancestor before creating anything. Checking only
+# TargetRoot itself misses a linked parent such as ~/.agents -> another folder.
+$ancestor = $targetRoot
+while ($ancestor -and -not (Test-Path -LiteralPath $ancestor)) {
+    $parent = Split-Path -Parent $ancestor
+    if (-not $parent -or $parent -eq $ancestor) {
+        break
+    }
+    $ancestor = $parent
+}
+while ($ancestor -and (Test-Path -LiteralPath $ancestor)) {
+    $ancestorItem = Get-Item -LiteralPath $ancestor -Force
+    if (($ancestorItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
+        throw "Refusing to install through a linked target path component: $ancestor"
+    }
+    $parent = Split-Path -Parent $ancestor
+    if (-not $parent -or $parent -eq $ancestor) {
+        break
+    }
+    $ancestor = $parent
+}
+
 New-Item -ItemType Directory -Force -Path $targetRoot | Out-Null
 $targetRoot = [System.IO.Path]::GetFullPath($targetRoot)
 $rootPrefix = $targetRoot.TrimEnd([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar) + [System.IO.Path]::DirectorySeparatorChar
