@@ -5,6 +5,9 @@ Notable changes to Personal AI Library are recorded here. This file tracks repos
 ## 2026-11-26
 
 ### Added
+- Recorded the simulated `python-development` traceback, minimal input-validation correction, and four passing regression checks.
+
+### Added
 - Recorded the simulated `crypto-futures-risk` linear-position calculation pilot.
 
 ### Changed
