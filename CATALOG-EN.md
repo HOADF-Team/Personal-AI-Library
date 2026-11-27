@@ -1,6 +1,6 @@
 # Skills Catalog
 
-**Current collection: 24 skills**
+**Current collection: 25 skills**
 
 Status meanings:
 - **Ready** — the skill has been created and its structure has been validated.
