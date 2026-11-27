@@ -10,6 +10,7 @@
 
 ### Changed
 - Extended the Python AST audit to detect keyword-based write modes, Path.open write modes, additional pathlib/os/shutil mutations, and os.open review candidates; added regression coverage and documented remaining false-negative limits.
+- Recorded automated evaluation 34: 12 Python AST audit regression tests passed on Python 3.9, 3.12 and 3.14.
 - Added the missing crypto-security entry to the English catalog and corrected its ready-skill count.
 - Clarified that AI-Toolbox environment preflight executes detected PATH binaries with fixed version/help arguments and therefore requires a trusted PATH.
 - Hardened crypto-security dependency-scanning guidance: pip-audit dependency resolution can run package build/install processes, and Trivy's exit code must not be treated as a findings-free guarantee without configuration.
