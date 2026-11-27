@@ -108,6 +108,28 @@ def handler_has_raise_or_logging(handler: ast.ExceptHandler) -> bool:
     return False
 
 
+def keyword_value(node: ast.Call, keyword_name: str):
+    for keyword in node.keywords:
+        if keyword.arg == keyword_name:
+            return keyword.value
+    return None
+
+
+def is_path_constructor(node: ast.AST) -> bool:
+    return (
+        isinstance(node, ast.Call)
+        and dotted_name(node.func) in {"Path", "pathlib.Path"}
+    )
+
+
+def is_write_mode(node: ast.AST | None) -> bool:
+    return (
+        isinstance(node, ast.Constant)
+        and isinstance(node.value, str)
+        and any(flag in node.value for flag in "wax+")
+    )
+
+
 class ReviewVisitor(ast.NodeVisitor):
     """Emit conservative review candidates; findings are not vulnerability verdicts."""
 
@@ -118,9 +140,13 @@ class ReviewVisitor(ast.NodeVisitor):
     }
     FILE_MUTATION_CALLS = {
         "os.remove", "os.unlink", "os.rmdir", "os.rename", "os.replace",
-        "shutil.rmtree",
+        "os.mkdir", "os.makedirs", "os.chmod", "os.chown", "os.truncate",
+        "os.utime", "os.symlink", "os.link",
+        "shutil.rmtree", "shutil.move", "shutil.copy", "shutil.copy2",
+        "shutil.copyfile", "shutil.copytree",
         "Path.unlink", "Path.rmdir", "Path.write_text", "Path.write_bytes",
-        "Path.touch",
+        "Path.touch", "Path.mkdir", "Path.rename", "Path.replace",
+        "Path.chmod", "Path.symlink_to", "Path.hardlink_to",
     }
 
     def __init__(self, rel: str):
@@ -138,13 +164,20 @@ class ReviewVisitor(ast.NodeVisitor):
 
     def visit_Call(self, node: ast.Call):
         name = dotted_name(node.func)
-        if (
-            isinstance(node.func, ast.Attribute)
-            and node.func.attr in {"unlink", "rmdir", "write_text", "write_bytes", "touch"}
-            and isinstance(node.func.value, ast.Call)
-            and dotted_name(node.func.value.func) in {"Path", "pathlib.Path"}
-        ):
-            name = "Path." + node.func.attr
+        path_instance_open = False
+        if isinstance(node.func, ast.Attribute):
+            if node.func.attr == "open" and is_path_constructor(node.func.value):
+                path_instance_open = True
+            elif (
+                node.func.attr in {
+                    "unlink", "rmdir", "write_text", "write_bytes", "touch",
+                    "mkdir", "rename", "replace", "chmod", "symlink_to",
+                    "hardlink_to",
+                }
+                and is_path_constructor(node.func.value)
+            ):
+                name = "Path." + node.func.attr
+
         if name in {"eval", "exec", "builtins.eval", "builtins.exec"}:
             self.add(
                 "dynamic_code_candidate", node,
@@ -165,13 +198,28 @@ class ReviewVisitor(ast.NodeVisitor):
                 "filesystem_mutation_candidate", node,
                 f"Вызов {name} изменяет или удаляет файлы; проверьте пути, права и ожидаемость операции.",
             )
-        elif name in {"open", "io.open", "builtins.open"} and len(node.args) >= 2:
-            mode = node.args[1]
-            if isinstance(mode, ast.Constant) and isinstance(mode.value, str) and any(flag in mode.value for flag in "wax+"):
+        elif path_instance_open or name in {"Path.open", "pathlib.Path.open"}:
+            if path_instance_open:
+                mode = node.args[0] if node.args else keyword_value(node, "mode")
+            else:
+                mode = node.args[1] if len(node.args) > 1 else keyword_value(node, "mode")
+            if is_write_mode(mode):
+                self.add(
+                    "filesystem_mutation_candidate", node,
+                    "Path.open() открыт в режиме записи/добавления; проверьте путь и ожидаемость изменения файла.",
+                )
+        elif name in {"open", "io.open", "builtins.open"}:
+            mode = node.args[1] if len(node.args) > 1 else keyword_value(node, "mode")
+            if is_write_mode(mode):
                 self.add(
                     "filesystem_mutation_candidate", node,
                     "open() открыт в режиме записи/добавления; проверьте путь и ожидаемость изменения файла.",
                 )
+        elif name == "os.open":
+            self.add(
+                "filesystem_access_candidate", node,
+                "Вызов os.open открывает файловый дескриптор; проверьте флаги записи, создания и усечения файла.",
+            )
         self.generic_visit(node)
 
     def visit_ExceptHandler(self, node: ast.ExceptHandler):
@@ -288,7 +336,7 @@ def main():
         "limitations": [
             "Скрипт не исполняет и не импортирует файлы проекта.",
             "Все *_candidate — сигналы для ручной проверки, а не доказанные ошибки или уязвимости.",
-            "Проверяются прямые AST-вызовы; aliases, getattr, reflection и динамические вызовы могут быть пропущены.",
+            "Проверяются прямые AST-вызовы и буквальные режимы записи; aliases, переменные Path, динамические mode/flags, getattr, reflection и обёртки могут быть пропущены.",
             "Не разрешаются динамические и относительные импорты, дополнительные sys.path и import hooks.",
             "Внешние зависимости нужно сверить с requirements/pyproject/lock-файлами.",
             "Запись/удаление файлов и запуск процессов сами по себе не являются вредоносными.",
