@@ -133,6 +133,29 @@ class PythonAstAuditTests(unittest.TestCase):
             self.assertEqual(code, 0)
             self.assertEqual(len(mutations), 3)
 
+
+    def test_detects_keyword_write_modes_path_mutations_and_os_open(self):
+        with tempfile.TemporaryDirectory() as temp:
+            project = Path(temp)
+            (project / "main.py").write_text(
+                "import os\\nimport shutil\\n"
+                "open('out.txt', mode='w')\\n"
+                "open('in.txt', mode='r')\\n"
+                "from pathlib import Path\\n"
+                "Path('append.txt').open(mode='a')\\n"
+                "Path('default-read.txt').open()\\n"
+                "Path.open(Path('class-open.txt'), 'x')\\n"
+                "Path('folder').mkdir()\\n"
+                "shutil.move('old.txt', 'new.txt')\\n"
+                "os.open('created.txt', os.O_WRONLY | os.O_CREAT, 0o600)\\n",
+                encoding="utf-8",
+            )
+            code, report = self.run_audit(project)
+            kinds = [item["kind"] for item in report["findings"]]
+            self.assertEqual(code, 0)
+            self.assertEqual(kinds.count("filesystem_mutation_candidate"), 5)
+            self.assertEqual(kinds.count("filesystem_access_candidate"), 1)
+
     def test_detects_bare_and_swallowed_exceptions(self):
         with tempfile.TemporaryDirectory() as temp:
             project = Path(temp)
