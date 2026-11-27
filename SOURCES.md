@@ -1,6 +1,6 @@
 # Источники и проверка сторонних материалов
 
-Дата проверки: 26 ноября 2026.
+Дата проверки: 27 ноября 2026.
 
 ## Официальная спецификация и документация
 
@@ -42,3 +42,16 @@ https://github.com/openai/skills
 ## Принцип лицензирования
 
 Библиотека не копирует сторонние каталоги целиком. В ней размещаются собственные инструкции, а источники указываются для прозрачности и дальнейшей проверки. Если в будущем будет перенесён сторонний файл или его существенная часть, рядом должны быть сохранены исходный URL, автор, лицензия и требуемые уведомления.
+
+
+## Источники для server-security
+
+- Ubuntu Server — Security suggestions: https://ubuntu.com/server/docs/explanation/security/security_suggestions/
+- Ubuntu Server — Security architecture: https://ubuntu.com/server/docs/reference/security-architecture/
+- Ubuntu Server — Defense in depth: https://ubuntu.com/server/docs/reference/security-architecture/defense-in-depth-layers/
+- NIST SP 800-123 — Guide to General Server Security: https://csrc.nist.gov/pubs/sp/800/123/final
+- CISA — Product Security Bad Practices: https://www.cisa.gov/resources-tools/resources/product-security-bad-practices
+- OWASP — Secrets Management Cheat Sheet: https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html
+- OWASP — Transport Layer Security Cheat Sheet: https://cheatsheetseries.owasp.org/cheatsheets/Transport_Layer_Security_Cheat_Sheet.html
+
+Использованы как ориентиры для собственной инструкции; тексты и сторонние навыки не копировались. Перед практическими изменениями сверяй рекомендации с версией ОС, провайдера и применяемой криптографической библиотеки.
