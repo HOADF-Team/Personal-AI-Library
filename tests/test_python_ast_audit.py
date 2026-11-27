@@ -27,9 +27,7 @@ class PythonAstAuditTests(unittest.TestCase):
             (project / "pkg").mkdir()
             (project / "pkg" / "__init__.py").write_text("", encoding="utf-8")
             (project / "main.py").write_text("import pkg.missing\n", encoding="utf-8")
-
             code, report = self.run_audit(project)
-
             self.assertEqual(code, 0)
             candidates = [
                 item["module"] for item in report["findings"]
@@ -44,12 +42,8 @@ class PythonAstAuditTests(unittest.TestCase):
             package.mkdir()
             (package / "__init__.py").write_text("", encoding="utf-8")
             (package / "helper.py").write_text("VALUE = 1\n", encoding="utf-8")
-            (project / "main.py").write_text(
-                "import os\nimport pkg.helper\n", encoding="utf-8"
-            )
-
+            (project / "main.py").write_text("import os\nimport pkg.helper\n", encoding="utf-8")
             code, report = self.run_audit(project)
-
             self.assertEqual(code, 0)
             self.assertEqual(report["unresolved_import_candidates"], 0)
             self.assertEqual(report["syntax_errors"], 0)
@@ -59,16 +53,12 @@ class PythonAstAuditTests(unittest.TestCase):
             project = Path(temp)
             package = project / "pkg"
             package.mkdir()
-            (package / "__init__.py").write_text(
-                "VALUE = 1\n", encoding="utf-8"
-            )
+            (package / "__init__.py").write_text("VALUE = 1\n", encoding="utf-8")
             (package / "helper.py").write_text("VALUE = 2\n", encoding="utf-8")
             (project / "main.py").write_text(
                 "from pkg import missing, helper, VALUE\n", encoding="utf-8"
             )
-
             code, report = self.run_audit(project)
-
             self.assertEqual(code, 0)
             candidates = [
                 item["module"] for item in report["findings"]
@@ -81,9 +71,7 @@ class PythonAstAuditTests(unittest.TestCase):
             project = Path(temp)
             (project / "json.py").write_text("VALUE = 1\n", encoding="utf-8")
             (project / "main.py").write_text("import json\n", encoding="utf-8")
-
             code, report = self.run_audit(project)
-
             self.assertEqual(code, 0)
             self.assertEqual(report["unresolved_import_candidates"], 0)
 
@@ -93,12 +81,8 @@ class PythonAstAuditTests(unittest.TestCase):
             namespace = project / "vendor" / "tools"
             namespace.mkdir(parents=True)
             (namespace / "helper.py").write_text("VALUE = 1\n", encoding="utf-8")
-            (project / "main.py").write_text(
-                "import vendor.tools.helper\n", encoding="utf-8"
-            )
-
+            (project / "main.py").write_text("import vendor.tools.helper\n", encoding="utf-8")
             code, report = self.run_audit(project)
-
             self.assertEqual(code, 0)
             self.assertEqual(report["unresolved_import_candidates"], 0)
 
@@ -109,13 +93,83 @@ class PythonAstAuditTests(unittest.TestCase):
             venv = project / ".venv"
             venv.mkdir()
             (venv / "ignored.py").write_text("not valid python !!!\n", encoding="utf-8")
-
             code, report = self.run_audit(project)
-
             self.assertEqual(code, 1)
             self.assertEqual(report["python_files"], 1)
             self.assertEqual(report["syntax_errors"], 1)
             self.assertEqual(report["read_errors"], 0)
+
+    def test_detects_dynamic_code_and_process_execution(self):
+        with tempfile.TemporaryDirectory() as temp:
+            project = Path(temp)
+            (project / "main.py").write_text(
+                "eval(user_input)\nexec(source)\n"
+                "import subprocess\nsubprocess.run(['tool'])\n"
+                "import os\nos.system('echo ok')\n",
+                encoding="utf-8",
+            )
+            code, report = self.run_audit(project)
+            kinds = [item["kind"] for item in report["findings"]]
+            self.assertEqual(code, 0)
+            self.assertEqual(kinds.count("dynamic_code_candidate"), 2)
+            self.assertEqual(kinds.count("process_execution_candidate"), 2)
+
+    def test_detects_file_mutations_but_does_not_flag_read_only_open(self):
+        with tempfile.TemporaryDirectory() as temp:
+            project = Path(temp)
+            (project / "main.py").write_text(
+                "open('input.txt', 'r')\n"
+                "open('output.txt', 'w')\n"
+                "from pathlib import Path\n"
+                "Path('old.txt').unlink()\n"
+                "Path('out.txt').write_text('x')\n",
+                encoding="utf-8",
+            )
+            code, report = self.run_audit(project)
+            mutations = [
+                item for item in report["findings"]
+                if item["kind"] == "filesystem_mutation_candidate"
+            ]
+            self.assertEqual(code, 0)
+            self.assertEqual(len(mutations), 3)
+
+    def test_detects_bare_and_swallowed_exceptions(self):
+        with tempfile.TemporaryDirectory() as temp:
+            project = Path(temp)
+            (project / "main.py").write_text(
+                "try:\n    work()\nexcept:\n    pass\n"
+                "try:\n    work()\nexcept Exception:\n    return_value = None\n"
+                "try:\n    work()\nexcept Exception:\n    logger.exception('failed')\n"
+                "try:\n    work()\nexcept Exception:\n    raise\n",
+                encoding="utf-8",
+            )
+            code, report = self.run_audit(project)
+            kinds = [item["kind"] for item in report["findings"]]
+            self.assertEqual(code, 0)
+            self.assertEqual(kinds.count("bare_except_candidate"), 1)
+            self.assertEqual(kinds.count("swallowed_exception_candidate"), 1)
+
+    def test_does_not_scan_strings_or_comments_for_call_names(self):
+        with tempfile.TemporaryDirectory() as temp:
+            project = Path(temp)
+            (project / "main.py").write_text(
+                "# eval(secret) and os.system('bad')\n"
+                "message = \"exec(code) subprocess.run(['x'])\"\n"
+                "def safe(value):\n    return value + 1\n",
+                encoding="utf-8",
+            )
+            code, report = self.run_audit(project)
+            self.assertEqual(code, 0)
+            self.assertEqual(report["security_review_candidates"], 0)
+
+    def test_review_candidates_do_not_fail_audit_exit_status(self):
+        with tempfile.TemporaryDirectory() as temp:
+            project = Path(temp)
+            (project / "main.py").write_text("eval(data)\n", encoding="utf-8")
+            code, report = self.run_audit(project)
+            self.assertEqual(code, 0)
+            self.assertEqual(report["security_review_candidates"], 1)
+            self.assertEqual(report["syntax_errors"], 0)
 
 
 if __name__ == "__main__":
