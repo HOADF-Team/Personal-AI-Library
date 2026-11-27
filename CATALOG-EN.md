@@ -36,6 +36,7 @@ Status meanings:
 | crypto-market-analysis | Market regime, BTC, altcoins, funding; market-regime checklist | Ready |
 | crypto-futures-risk | Perpetual futures risk; position and risk calculations | Ready |
 | trading-bot-audit | Trading bot, logs, and database audits; PnL and execution reconciliation | Ready |
+| crypto-security | Crypto trading security, API keys, encryption, VPS, backups, and incident response | Ready |
 
 ## Business, marketing, and sales
 
@@ -65,6 +66,6 @@ Status meanings:
 
 Do not add skills just to increase the count. First verify that a proposed skill solves a distinct task better than the existing instructions. Do not copy third-party skills without reviewing their licenses, resources, scripts, and dependencies.
 
-The current collection contains 24 ready skills. Sources and selection notes are documented in `SOURCES.md`.
+The current collection contains 25 ready skills. Sources and selection notes are documented in `SOURCES.md`.
 
 [Back to README](README.md)
