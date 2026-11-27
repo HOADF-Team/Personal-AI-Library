@@ -4,7 +4,7 @@
 
 Personal AI Library helps an AI coding agent move from a broad request to a structured workflow: investigation, code review, debugging, development, deployment, research, or document preparation. Instead of rebuilding the same process for every project, the agent can select a relevant skill and load its supporting references when needed.
 
-> **Current collection:** 23 skills. **Development version:** `0.1.0` (not yet published as a GitHub Release). The collection is actively maintained. A documented workflow is not a guarantee that it has been tested in every project, environment, or service configuration.
+> **Current collection:** 24 skills. **Development version:** `0.1.0` (not yet published as a GitHub Release). The collection is actively maintained. A documented workflow is not a guarantee that it has been tested in every project, environment, or service configuration.
 
 **Languages:** [English](#english) | [Русский](#русский)
 
@@ -24,11 +24,11 @@ Supporting references are loaded only when relevant. This keeps the initial inst
 
 ### Skill areas
 
-The current collection contains 23 skills across six areas:
+The current collection contains 24 skills across six areas:
 
 | Area | Examples of covered tasks |
 |---|---|
-| **Software development** | Python development, AST-based code audits, import and startup checks, web development, VPS/DevOps, APIs and automation |
+| **Software development** | Python development, AST-based code audits, import and startup checks, web development, VPS/DevOps, server security, encryption, backups, APIs and automation |
 | **Platforms and messaging** | Telegram and MAX bots, GitHub repositories and portfolios, social media workflows, content planning |
 | **Cryptocurrency and trading systems** | Crypto research, market-regime analysis, futures risk calculations, trading-bot audits |
 | **Business and marketing** | Product positioning, marketing copy, SEO audits, Kwork order workflows, fact-checking and source verification |
@@ -166,7 +166,7 @@ Read the license files for the exact scope and conditions. Third-party materials
 
 Она помогает ИИ-агенту переходить от общей задачи к конкретному порядку действий: исследованию, аудиту кода, отладке, разработке, развёртыванию, анализу информации или подготовке документов. Вместо того чтобы каждый раз собирать процесс с нуля, агент выбирает подходящий навык и при необходимости читает дополнительные материалы.
 
-> **Текущая коллекция:** 23 навыка. **Версия разработки:** `0.1.0` (релиз GitHub пока не опубликован). Библиотека развивается. Наличие инструкции не означает, что описанный процесс проверен на всех проектах, системах и конфигурациях сервисов.
+> **Текущая коллекция:** 24 навыка. **Версия разработки:** `0.1.0` (релиз GitHub пока не опубликован). Библиотека развивается. Наличие инструкции не означает, что описанный процесс проверен на всех проектах, системах и конфигурациях сервисов.
 
 ### Что входит в библиотеку
 
@@ -180,11 +180,11 @@ Read the license files for the exact scope and conditions. Third-party materials
 
 ### Направления библиотеки
 
-Сейчас в библиотеке 23 навыка по шести направлениям:
+Сейчас в библиотеке 24 навыка по шести направлениям:
 
 | Направление | Примеры задач |
 |---|---|
-| **Программирование и разработка** | Python, AST-аудит кода, проверка импортов и запуска, веб-разработка, VPS/DevOps, API и автоматизация |
+| **Программирование и разработка** | Python, AST-аудит кода, проверка импортов и запуска, веб-разработка, VPS/DevOps, защита серверов, шифрование, резервные копии, API и автоматизация |
 | **Площадки и мессенджеры** | Telegram- и MAX-боты, GitHub-репозитории и портфолио, социальные сети, планирование контента |
 | **Криптовалюта и торговые системы** | Исследование криптовалют, анализ режима рынка, расчёт риска фьючерсных позиций, аудит торговых ботов |
 | **Бизнес и маркетинг** | Позиционирование продукта, рекламные тексты, SEO-аудит, работа с заказами Kwork, проверка фактов и источников |
