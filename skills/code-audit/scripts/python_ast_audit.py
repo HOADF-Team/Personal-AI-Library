@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only Python source audit: syntax, imports and basic structure. No project code is executed."""
+"""Read-only Python AST audit: syntax, imports and review candidates. Never executes project code."""
 from __future__ import annotations
 
 import argparse
@@ -7,34 +7,30 @@ import ast
 import json
 import sys
 import sysconfig
+from collections import Counter
 from pathlib import Path
 
 STDLIB_ROOT = Path(sysconfig.get_paths()["stdlib"]).resolve()
 STDLIB_NAMES = set(getattr(sys, "stdlib_module_names", ()))
+
+SKIP_DIRS = {
+    ".git", ".hg", ".svn", ".venv", "venv", "env", "__pycache__",
+    "site-packages", "dist", "build", ".tox", ".mypy_cache", ".pytest_cache",
+}
 
 
 def is_stdlib_module(name: str) -> bool:
     top = name.split(".", 1)[0]
     if top in STDLIB_NAMES or top in sys.builtin_module_names:
         return True
-
-    # Python 3.9 has no sys.stdlib_module_names. Check source packages,
-    # single-file modules and platform extension modules explicitly.
-    module_path = STDLIB_ROOT / top
     if (STDLIB_ROOT / (top + ".py")).is_file():
         return True
+    module_path = STDLIB_ROOT / top
     if (module_path / "__init__.py").is_file():
         return True
-
     platform_stdlib = Path(sysconfig.get_paths().get("platstdlib", str(STDLIB_ROOT)))
     extension_dir = platform_stdlib / "lib-dynload"
     return extension_dir.is_dir() and any(extension_dir.glob(top + ".*"))
-
-
-SKIP_DIRS = {
-    ".git", ".hg", ".svn", ".venv", "venv", "env", "__pycache__",
-    "site-packages", "dist", "build", ".tox", ".mypy_cache", ".pytest_cache",
-}
 
 
 def iter_python_files(root: Path):
@@ -45,19 +41,12 @@ def iter_python_files(root: Path):
 
 
 def local_module_exists(root: Path, module: str) -> bool:
-    """Check a project-root module, including implicit namespace packages.
-
-    The project root is treated as an import root. This is deliberately a
-    filesystem-only approximation; runtime sys.path and custom import hooks
-    are not evaluated.
-    """
     parts = module.split(".")
     base = root.joinpath(*parts)
     return base.with_suffix(".py").is_file() or base.is_dir()
 
 
 def package_export_names(root: Path, module: str):
-    """Return names visibly exported by a local package __init__.py."""
     init_file = root.joinpath(*module.split(".")) / "__init__.py"
     if not init_file.is_file():
         return set()
@@ -65,7 +54,6 @@ def package_export_names(root: Path, module: str):
         tree = ast.parse(init_file.read_text(encoding="utf-8-sig"), filename=str(init_file))
     except (OSError, UnicodeError, SyntaxError):
         return set()
-
     names = set()
     for node in tree.body:
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
@@ -89,13 +77,117 @@ def package_export_names(root: Path, module: str):
     return names
 
 
+def dotted_name(node: ast.AST) -> str:
+    if isinstance(node, ast.Name):
+        return node.id
+    if isinstance(node, ast.Attribute):
+        prefix = dotted_name(node.value)
+        return prefix + "." + node.attr if prefix else node.attr
+    return ""
+
+
+def handler_has_raise_or_logging(handler: ast.ExceptHandler) -> bool:
+    """Inspect this handler but do not count code nested in a new scope."""
+    stack = list(handler.body)
+    while stack:
+        node = stack.pop()
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef, ast.Lambda)):
+            continue
+        if isinstance(node, ast.Raise):
+            return True
+        if isinstance(node, ast.Call):
+            name = dotted_name(node.func)
+            if (
+                name.startswith("logging.")
+                or name.startswith("logger.")
+                or name.startswith("log.")
+                or name in {"warning", "error", "exception", "critical"}
+            ):
+                return True
+        stack.extend(ast.iter_child_nodes(node))
+    return False
+
+
+class ReviewVisitor(ast.NodeVisitor):
+    """Emit conservative review candidates; findings are not vulnerability verdicts."""
+
+    PROCESS_CALLS = {
+        "subprocess.run", "subprocess.Popen", "subprocess.call",
+        "subprocess.check_call", "subprocess.check_output",
+        "os.system", "os.popen", "os.popen2", "os.popen3", "os.popen4",
+    }
+    FILE_MUTATION_CALLS = {
+        "os.remove", "os.unlink", "os.rmdir", "os.rename", "os.replace",
+        "shutil.rmtree",
+        "Path.unlink", "Path.rmdir", "Path.write_text", "Path.write_bytes",
+        "Path.touch",
+    }
+
+    def __init__(self, rel: str):
+        self.rel = rel
+        self.findings = []
+
+    def add(self, kind: str, node: ast.AST, message: str):
+        self.findings.append({
+            "kind": kind,
+            "file": self.rel,
+            "line": getattr(node, "lineno", None),
+            "severity": "review",
+            "message": message,
+        })
+
+    def visit_Call(self, node: ast.Call):
+        name = dotted_name(node.func)
+        if name in {"eval", "exec", "builtins.eval", "builtins.exec"}:
+            self.add(
+                "dynamic_code_candidate", node,
+                f"Вызов {name} динамически исполняет код; проверьте источник и валидацию данных.",
+            )
+        elif name == "compile":
+            self.add(
+                "dynamic_code_candidate", node,
+                "Вызов compile создаёт code object; проверьте, где и как он затем исполняется.",
+            )
+        elif name in self.PROCESS_CALLS:
+            self.add(
+                "process_execution_candidate", node,
+                f"Вызов {name} запускает внешний процесс или команду; проверьте аргументы и доверие к данным.",
+            )
+        elif name in self.FILE_MUTATION_CALLS:
+            self.add(
+                "filesystem_mutation_candidate", node,
+                f"Вызов {name} изменяет или удаляет файлы; проверьте пути, права и ожидаемость операции.",
+            )
+        elif name in {"open", "io.open", "builtins.open"} and len(node.args) >= 2:
+            mode = node.args[1]
+            if isinstance(mode, ast.Constant) and isinstance(mode.value, str) and any(flag in mode.value for flag in "wax+"):
+                self.add(
+                    "filesystem_mutation_candidate", node,
+                    "open() открыт в режиме записи/добавления; проверьте путь и ожидаемость изменения файла.",
+                )
+        self.generic_visit(node)
+
+    def visit_ExceptHandler(self, node: ast.ExceptHandler):
+        if node.type is None:
+            self.add(
+                "bare_except_candidate", node,
+                "Bare except перехватывает почти все исключения, включая системные; проверьте необходимость.",
+            )
+        elif isinstance(node.type, ast.Name) and node.type.id in {"Exception", "BaseException"}:
+            if not handler_has_raise_or_logging(node):
+                self.add(
+                    "swallowed_exception_candidate", node,
+                    f"Обработчик {node.type.id} не содержит явного повторного raise или логирования; исключение может теряться.",
+                )
+        self.generic_visit(node)
+
+
 def audit_file(path: Path, root: Path):
     rel = path.relative_to(root).as_posix()
     try:
         source = path.read_text(encoding="utf-8-sig")
     except (OSError, UnicodeError) as exc:
         return [{"kind": "read_error", "file": rel, "message": str(exc)}]
-
     try:
         tree = ast.parse(source, filename=rel)
     except SyntaxError as exc:
@@ -105,18 +197,17 @@ def audit_file(path: Path, root: Path):
         }]
 
     findings = []
+    visitor = ReviewVisitor(rel)
+    visitor.visit(tree)
+    findings.extend(visitor.findings)
+
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             modules = [(alias.name, node.lineno) for alias in node.names]
         elif isinstance(node, ast.ImportFrom):
-            if node.level:
-                # Relative imports depend on package context; do not guess resolution.
+            if node.level or not node.module:
                 continue
             module = node.module
-            if not module:
-                continue
-            # A project-root module shadows the stdlib when this project root
-            # is an import root, so check it before classifying stdlib names.
             if local_module_exists(root, module):
                 package_dir = root.joinpath(*module.split("."))
                 if package_dir.is_dir():
@@ -131,6 +222,7 @@ def audit_file(path: Path, root: Path):
                             "file": rel,
                             "line": node.lineno,
                             "module": module + "." + alias.name,
+                            "severity": "review",
                             "message": "Подмодуль не найден, но имя может экспортироваться динамически; проверьте __init__.py вручную.",
                         })
                 continue
@@ -139,25 +231,21 @@ def audit_file(path: Path, root: Path):
                 "file": rel,
                 "line": node.lineno,
                 "module": module,
+                "severity": "review",
                 "message": "Не найден как локальный модуль или stdlib; проверьте зависимости, namespace package и sys.path вручную.",
             })
             continue
         else:
             continue
-
         for module, line in modules:
-            if not module:
-                continue
-            # Resolve local modules first: e.g. project/json.py shadows stdlib json.
-            if local_module_exists(root, module):
-                continue
-            if is_stdlib_module(module):
+            if not module or local_module_exists(root, module) or is_stdlib_module(module):
                 continue
             findings.append({
                 "kind": "unresolved_import_candidate",
                 "file": rel,
                 "line": line,
                 "module": module,
+                "severity": "review",
                 "message": "Не найден как локальный модуль или stdlib; проверьте зависимости, namespace package и sys.path вручную.",
             })
     return findings
@@ -177,20 +265,26 @@ def main():
     for path in files:
         findings.extend(audit_file(path, root))
 
+    counts = Counter(item["kind"] for item in findings)
     summary = {
         "root": str(root),
         "python_files": len(files),
-        "syntax_errors": sum(x["kind"] == "syntax_error" for x in findings),
-        "read_errors": sum(x["kind"] == "read_error" for x in findings),
-        "unresolved_import_candidates": sum(
-            x["kind"] == "unresolved_import_candidate" for x in findings
+        "syntax_errors": counts["syntax_error"],
+        "read_errors": counts["read_error"],
+        "unresolved_import_candidates": counts["unresolved_import_candidate"],
+        "security_review_candidates": sum(
+            count for kind, count in counts.items()
+            if kind.endswith("_candidate") and kind != "unresolved_import_candidate"
         ),
+        "finding_counts": dict(sorted(counts.items())),
         "findings": findings,
         "limitations": [
             "Скрипт не исполняет и не импортирует файлы проекта.",
-            "Кандидат на отсутствующий импорт не является доказанной ошибкой.",
-            "Не разрешаются динамические импорты, относительные импорты и runtime sys.path.",
+            "Все *_candidate — сигналы для ручной проверки, а не доказанные ошибки или уязвимости.",
+            "Проверяются прямые AST-вызовы; aliases, getattr, reflection и динамические вызовы могут быть пропущены.",
+            "Не разрешаются динамические и относительные импорты, дополнительные sys.path и import hooks.",
             "Внешние зависимости нужно сверить с requirements/pyproject/lock-файлами.",
+            "Запись/удаление файлов и запуск процессов сами по себе не являются вредоносными.",
         ],
     }
     if args.json:
@@ -200,13 +294,14 @@ def main():
         print(f"Syntax errors: {summary['syntax_errors']}")
         print(f"Read errors: {summary['read_errors']}")
         print(f"Unresolved import candidates: {summary['unresolved_import_candidates']}")
+        print(f"Security review candidates: {summary['security_review_candidates']}")
         for item in findings:
             location = item["file"]
-            if "line" in item:
+            if item.get("line") is not None:
                 location += f":{item['line']}"
             detail = item.get("module") or item.get("message", "")
             print(f"- [{item['kind']}] {location}: {detail}")
-        print("NOTE: unresolved imports require manual verification.")
+        print("NOTE: candidates require manual verification; they are not vulnerability verdicts.")
     return 1 if summary["syntax_errors"] or summary["read_errors"] else 0
 
 
