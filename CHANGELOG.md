@@ -9,6 +9,7 @@
 - Added the historical automation-vps webhook evaluation summary as record 32 and a reproducible current webhook scenario as record 33; missing historical details are explicitly marked as unavailable.
 
 ### Changed
+- Added official Telegram and MAX documentation sources; documented current MAX eligibility, API host/auth, HTTPS webhook and HTTP 200 error-body checkpoints, plus Telegram update-retention considerations.
 - Extended the Python AST audit to detect keyword-based write modes, Path.open write modes, additional pathlib/os/shutil mutations, and os.open review candidates; added regression coverage and documented remaining false-negative limits.
 - Recorded automated evaluation 34: 12 Python AST audit regression tests passed on Python 3.9, 3.12 and 3.14.
 - Added the missing crypto-security entry to the English catalog and corrected its ready-skill count.

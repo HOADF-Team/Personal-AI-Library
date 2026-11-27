@@ -85,3 +85,22 @@ https://github.com/openai/skills
 - The upstream Gitleaks project describes itself as feature-complete and states that future releases are for security patches. Check its current maintenance status and compare maintained alternatives before adopting it for a new deployment.
 
 Использованы официальные спецификации и документация как ориентиры для собственной инструкции. Наличие инструмента в списке не означает, что он установлен, настроен или протестирован в целевой среде.
+
+
+## Источники для Telegram и MAX bots
+
+### MAX
+- Официальная документация MAX Bot API: https://dev.max.ru/docs-api/
+- Подготовка и сценарии работы чат-бота, требования к webhook: https://dev.max.ru/docs/chatbots/bots-coding/prepare
+- История изменений MAX Bot API: https://dev.max.ru/docs-api/changelog-api/
+- Официальная OpenAPI schema: https://github.com/max-messenger/api-schema/blob/main/schema.yaml
+- Создание webhook-подписки: https://dev.max.ru/docs-api/methods/POST/subscriptions
+
+### Telegram
+- Официальный Telegram Bot API: https://core.telegram.org/bots/api
+- Официальное руководство по webhook: https://core.telegram.org/bots/webhooks
+- Bot FAQ: https://core.telegram.org/bots/faq
+- Bot features и safeguards: https://core.telegram.org/bots/features
+- История изменений Bot API: https://core.telegram.org/bots/api-changelog
+
+Платформенные endpoint, авторизация, eligibility, ограничения webhook, сроки хранения updates и rate limits меняются. Перед реализацией сверять конкретный метод и changelog; этот список источников не заменяет проверку актуального контракта.
