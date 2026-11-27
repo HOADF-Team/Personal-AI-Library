@@ -21,6 +21,7 @@ SECURITY_BASELINE_MARKERS = (
 )
 FENCE_START_RE = re.compile(r"^\s{0,3}(\x60{3,}|~{3,})")
 INLINE_CODE_RE = re.compile(r"(?<!\x60)\x60+[^\x60]*\x60+")
+CATALOG_SKILL_RE = re.compile(r"(?m)^\|\s*([a-z0-9][a-z0-9-]*)\s*\|")
 
 
 def strip_markdown_code(text: str) -> str:
@@ -94,6 +95,48 @@ def validate_markdown_links(markdown_file: Path, repo_root: Path):
             errors.append(
                 f"{markdown_file.relative_to(repo_root)}: broken local link '{raw_target}'"
             )
+
+    return errors
+
+
+
+def validate_catalog_coverage(root: Path, skill_names):
+    """Ensure Russian and English catalogs list exactly the repository Skills."""
+    errors = []
+    expected = set(skill_names)
+    catalog_names = ("CATALOG.md", "CATALOG-EN.md")
+    present = [root / name for name in catalog_names if (root / name).is_file()]
+
+    if not present:
+        return [f"{name}: catalog is missing" for name in catalog_names]
+
+    for catalog_name in catalog_names:
+        catalog = root / catalog_name
+        if not catalog.is_file():
+            errors.append(f"{catalog_name}: catalog is missing")
+            continue
+        try:
+            content = catalog.read_text(encoding="utf-8")
+        except (OSError, UnicodeError) as exc:
+            errors.append(f"{catalog_name}: cannot read catalog: {exc}")
+            continue
+
+        listed_names = [
+            match.group(1)
+            for match in CATALOG_SKILL_RE.finditer(content)
+            if match.group(1).casefold() not in {"skill", "навык"}
+        ]
+        listed = set(listed_names)
+        missing = sorted(expected - listed)
+        unexpected = sorted(listed - expected)
+        duplicates = sorted(name for name in listed if listed_names.count(name) > 1)
+
+        if missing:
+            errors.append(f"{catalog_name}: missing Skills: {', '.join(missing)}")
+        if unexpected:
+            errors.append(f"{catalog_name}: unknown Skills: {', '.join(unexpected)}")
+        if duplicates:
+            errors.append(f"{catalog_name}: duplicate Skills: {', '.join(duplicates)}")
 
     return errors
 
@@ -182,6 +225,8 @@ def validate_repository(root: Path = ROOT):
                     errors.append(
                         f"{skill_dir.name}: invalid script {script.relative_to(skill_dir)}: {exc}"
                     )
+
+    errors.extend(validate_catalog_coverage(root, set(seen)))
 
     # Validate local links in every repository Markdown document, not only Skills.
     # Ignore generated environments and Git internals when running from a checkout.
