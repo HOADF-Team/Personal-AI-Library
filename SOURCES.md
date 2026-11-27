@@ -55,3 +55,33 @@ https://github.com/openai/skills
 - OWASP — Transport Layer Security Cheat Sheet: https://cheatsheetseries.owasp.org/cheatsheets/Transport_Layer_Security_Cheat_Sheet.html
 
 Использованы как ориентиры для собственной инструкции; тексты и сторонние навыки не копировались. Перед практическими изменениями сверяй рекомендации с версией ОС, провайдера и применяемой криптографической библиотеки.
+
+
+## Источники для crypto-security
+
+### Ключи, секреты и криптография
+- NIST SP 800-57 Part 1 Rev. 5 — Recommendation for Key Management: https://www.nist.gov/publications/recommendation-key-management-part-1-general-1
+- OWASP — Secrets Management Cheat Sheet: https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html
+- OWASP — Transport Layer Security Cheat Sheet: https://cheatsheetseries.owasp.org/cheatsheets/Transport_Layer_Security_Cheat_Sheet.html
+- age — official project and file-encryption documentation: https://github.com/FiloSottile/age
+- SOPS — official documentation: https://getsops.io/docs/
+
+### Backups and software supply chain
+- restic — official documentation: https://restic.readthedocs.io/en/stable/
+- Sigstore Cosign — signature verification: https://docs.sigstore.dev/cosign/verifying/verify/
+- Sigstore — keyless signing and identity model: https://docs.sigstore.dev/cosign/signing/overview/
+- Syft — SBOM generation documentation: https://oss.anchore.com/docs/
+- Trivy — official documentation: https://trivy.dev/docs/latest/
+- Bandit — Python security linter documentation: https://bandit.readthedocs.io/en/latest/
+- pip-audit — PyPA dependency vulnerability auditor: https://pypi.org/project/pip-audit/
+- Gitleaks — official repository and maintenance status: https://github.com/gitleaks/gitleaks
+
+### Important tool limitations
+- `pip-audit` checks known vulnerabilities in Python dependencies; it is not a static code analyzer or malware scanner. Its dependency-resolution workflow may invoke package installation/build processes. Use trusted, pinned dependency inputs or an already prepared isolated environment; do not audit an untrusted manifest by triggering installation. Do not use `--fix` without explicit approval.
+- Trivy's coverage depends on the selected scanner, package ecosystem and advisory sources. Review the report; a zero exit code alone does not mean that no findings exist unless the exit-code behavior was configured for the intended gate.
+- Syft generates an SBOM; it does not by itself establish that listed components are safe or vulnerability-free.
+- Cosign verification must check the expected signer identity/OIDC issuer or trusted public key and the artifact digest. A valid signature does not prove that the source code is safe.
+- age encrypts files; it is not a secret manager. restic protects backup repository contents with encryption, but recovery still depends on keeping repository passwords and recovery material safe.
+- The upstream Gitleaks project describes itself as feature-complete and states that future releases are for security patches. Check its current maintenance status and compare maintained alternatives before adopting it for a new deployment.
+
+Использованы официальные спецификации и документация как ориентиры для собственной инструкции. Наличие инструмента в списке не означает, что он установлен, настроен или протестирован в целевой среде.
