@@ -433,7 +433,7 @@ Start with these five Skills. Expand the evaluation set only when a real task or
 - Limitations: simulated request only; no real firewall, SSH daemon, provider console or production VPS was accessed or changed; manual self-evaluation, not independent security testing.
 
 
-### 32. automation-vps — earlier webhook evaluation (limited historical evidence)
+### 32. `automation-vps` — earlier webhook evaluation (limited historical evidence)
 
 **Historical record — 2026-11-26:**
 - A prior manual scenario evaluation covered webhook signature validation, payload structure, duplicate delivery and out-of-order events.
@@ -442,7 +442,7 @@ Start with these five Skills. Expand the evaluation set only when a real task or
 - Exact prompt, repository commit, raw transcript, detailed score breakdown and confirming CI run were not retained.
 - Limitation: this is a historical summary of a test scenario, not evidence from a production webhook provider or deployed service. No missing details are reconstructed.
 
-### 33. automation-vps — webhook crash window, duplicate and out-of-order delivery
+### 33. `automation-vps` — webhook crash window, duplicate and out-of-order delivery
 
 **Evaluation record — 2026-11-27 (manual scenario, current assistant):**
 - Repository commit before evaluation: 81746f276c0710c951d4fecb557406c56f23ceec.
