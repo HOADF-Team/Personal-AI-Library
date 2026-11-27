@@ -5,7 +5,8 @@
 ### Added
 - Added the server-security Skill with a practical Linux/VPS security checklist covering access control, SSH, network exposure, patching, encryption at rest and in transit, key management, TLS, databases, containers, backups, monitoring, and incident response.
 - Added explicit safety boundaries: read-only audit by default, approval before changes, lockout prevention, secret redaction, and evidence preservation during incidents.
-- Recorded manual security evaluations 28–29 for crypto-security (credential exposure/TLS verification) and server-security (firewall/SSH lockout prevention). These are current-model manual evaluations, not independent or automated LLM tests.
+- Preserved the limited historical PASS notes for crypto-security and server-security as records 28–29; added reproducible current manual scenarios 30–31 with exact prompts and limitations.
+- Added the historical automation-vps webhook evaluation summary as record 32 and a reproducible current webhook scenario as record 33; missing historical details are explicitly marked as unavailable.
 
 ### Changed
 - Added the missing crypto-security entry to the English catalog and corrected its ready-skill count.
