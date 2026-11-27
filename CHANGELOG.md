@@ -9,6 +9,8 @@
 
 ### Changed
 - Added the missing crypto-security entry to the English catalog and corrected its ready-skill count.
+- Hardened crypto-security dependency-scanning guidance: pip-audit dependency resolution can run package build/install processes, and Trivy's exit code must not be treated as a findings-free guarantee without configuration.
+- Added official cryptography, backup, SBOM, signing and scanner sources for crypto-security; documented tool limitations and Gitleaks maintenance status.
 - Extended repository validation to require both catalogs to list exactly the Skills present in the repository; added a regression test for missing and unexpected catalog entries.
 
 Notable changes to Personal AI Library are recorded here. This file tracks repository changes; it does not imply that every Skill has been validated in every project or environment.
