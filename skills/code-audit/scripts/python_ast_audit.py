@@ -138,6 +138,13 @@ class ReviewVisitor(ast.NodeVisitor):
 
     def visit_Call(self, node: ast.Call):
         name = dotted_name(node.func)
+        if (
+            isinstance(node.func, ast.Attribute)
+            and node.func.attr in {"unlink", "rmdir", "write_text", "write_bytes", "touch"}
+            and isinstance(node.func.value, ast.Call)
+            and dotted_name(node.func.value.func) in {"Path", "pathlib.Path"}
+        ):
+            name = "Path." + node.func.attr
         if name in {"eval", "exec", "builtins.eval", "builtins.exec"}:
             self.add(
                 "dynamic_code_candidate", node,
