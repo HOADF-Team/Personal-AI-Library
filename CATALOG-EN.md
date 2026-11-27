@@ -1,6 +1,6 @@
 # Skills Catalog
 
-**Current collection: 23 skills**
+**Current collection: 24 skills**
 
 Status meanings:
 - **Ready** — the skill has been created and its structure has been validated.
@@ -15,6 +15,7 @@ Status meanings:
 | code-audit | AST analysis, imports, calls, startup errors; AST script and audit method | Ready |
 | web-development | Websites and interfaces with HTML/CSS/JavaScript; GitHub Pages runbook | Ready |
 | devops-vps | Linux, VPS, Docker, systemd; read-only service diagnostics | Ready |
+| server-security | Server hardening, SSH, network security, encryption, key management, backups, and incident response | Ready |
 | automation-vps | APIs, webhooks, and integrations; integration runbook | Ready |
 
 ## Platforms and messaging
@@ -64,6 +65,6 @@ Status meanings:
 
 Do not add skills just to increase the count. First verify that a proposed skill solves a distinct task better than the existing instructions. Do not copy third-party skills without reviewing their licenses, resources, scripts, and dependencies.
 
-The current release contains 23 ready skills. Sources and selection notes are documented in `SOURCES.md`.
+The current collection contains 24 ready skills. Sources and selection notes are documented in `SOURCES.md`.
 
 [Back to README](README.md)
