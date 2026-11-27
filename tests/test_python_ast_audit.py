@@ -138,16 +138,16 @@ class PythonAstAuditTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             project = Path(temp)
             (project / "main.py").write_text(
-                "import os\\nimport shutil\\n"
-                "open('out.txt', mode='w')\\n"
-                "open('in.txt', mode='r')\\n"
-                "from pathlib import Path\\n"
-                "Path('append.txt').open(mode='a')\\n"
-                "Path('default-read.txt').open()\\n"
-                "Path.open(Path('class-open.txt'), 'x')\\n"
-                "Path('folder').mkdir()\\n"
-                "shutil.move('old.txt', 'new.txt')\\n"
-                "os.open('created.txt', os.O_WRONLY | os.O_CREAT, 0o600)\\n",
+                "import os\nimport shutil\n"
+                "open('out.txt', mode='w')\n"
+                "open('in.txt', mode='r')\n"
+                "from pathlib import Path\n"
+                "Path('append.txt').open(mode='a')\n"
+                "Path('default-read.txt').open()\n"
+                "Path.open(Path('class-open.txt'), 'x')\n"
+                "Path('folder').mkdir()\n"
+                "shutil.move('old.txt', 'new.txt')\n"
+                "os.open('created.txt', os.O_WRONLY | os.O_CREAT, 0o600)\n",
                 encoding="utf-8",
             )
             code, report = self.run_audit(project)
