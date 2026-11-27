@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-27
+
+### Added
+- Added the server-security Skill with a practical Linux/VPS security checklist covering access control, SSH, network exposure, patching, encryption at rest and in transit, key management, TLS, databases, containers, backups, monitoring, and incident response.
+- Added explicit safety boundaries: read-only audit by default, approval before changes, lockout prevention, secret redaction, and evidence preservation during incidents.
+
 Notable changes to Personal AI Library are recorded here. This file tracks repository changes; it does not imply that every Skill has been validated in every project or environment.
 
 ## 2026-11-26
