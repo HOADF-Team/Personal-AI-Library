@@ -93,6 +93,17 @@ function Get-SafeTargetPath {
         throw "Invalid managed path in installer manifest: $RelativePath"
     }
 
+    # Windows treats colons as alternate-data-stream separators. Reject
+    # filesystem-invalid names before resolving or operating on any path.
+    foreach ($part in $parts) {
+        if ($part -match '[:*?"<>|]' -or $part.EndsWith('.') -or $part.EndsWith(' ')) {
+            throw "Invalid Windows path component in installer manifest: $RelativePath"
+        }
+        if ($part -match '^(?i:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\..*)?$') {
+            throw "Reserved Windows device name in installer manifest: $RelativePath"
+        }
+    }
+
     $fullPath = [System.IO.Path]::GetFullPath((Join-Path $ExpectedRoot $normalized))
     if (-not $fullPath.StartsWith($rootPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
         throw "Manifest path escapes the installation folder: $RelativePath"
