@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -17,6 +18,7 @@ class PythonAstAuditTests(unittest.TestCase):
             capture_output=True,
             text=True,
             encoding="utf-8",
+            env={**os.environ, "PYTHONIOENCODING": "utf-8"},
             check=False,
         )
         self.assertTrue(result.stdout, result.stderr)
