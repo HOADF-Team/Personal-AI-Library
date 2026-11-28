@@ -1,3 +1,5 @@
+import os
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -206,7 +208,38 @@ class MarkdownLinkValidationTests(unittest.TestCase):
             self.assertEqual(skill_count, 0)
             self.assertEqual(reference_count, 0)
             self.assertEqual(script_count, 0)
-            self.assertTrue(any("skills/linked" in error and "symbolic links" in error for error in errors))
+            self.assertTrue(any("skills/linked" in error.replace("\\", "/") and "symbolic links" in error for error in errors))
+            self.assertFalse(any("External content" in error for error in errors))
+
+    @unittest.skipUnless(os.name == "nt", "Windows junction behavior")
+    def test_repository_validation_rejects_junction_and_does_not_read_target(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "repo"
+            skills = root / "skills"
+            outside = Path(temp_dir) / "outside"
+            skills.mkdir(parents=True)
+            outside.mkdir()
+            (outside / "SKILL.md").write_text(
+                "---\nname: linked\ndescription: External content.\n---\n",
+                encoding="utf-8",
+            )
+            junction = skills / "linked"
+            result = subprocess.run(
+                ["cmd", "/c", "mklink", "/J", str(junction), str(outside)],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            if result.returncode != 0:
+                self.skipTest("Could not create a directory junction: " + result.stderr)
+
+            errors, skill_count, reference_count, script_count, fatal = validate_repository(root)
+
+            self.assertEqual(fatal, [])
+            self.assertEqual(skill_count, 0)
+            self.assertEqual(reference_count, 0)
+            self.assertEqual(script_count, 0)
+            self.assertTrue(any("skills/linked" in error.replace("\\", "/") and "junctions" in error for error in errors))
             self.assertFalse(any("External content" in error for error in errors))
 
     def test_repository_validation_requires_untrusted_input_security_baseline(self):

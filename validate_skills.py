@@ -4,7 +4,9 @@
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 import ast
+import os
 import re
+import stat
 import sys
 
 ROOT = Path(__file__).resolve().parent
@@ -23,6 +25,40 @@ FENCE_START_RE = re.compile(r"^\s{0,3}(\x60{3,}|~{3,})")
 INLINE_CODE_RE = re.compile(r"(?<!\x60)\x60+[^\x60]*\x60+")
 CATALOG_SKILL_RE = re.compile(r"(?m)^\|\s*([a-z0-9][a-z0-9-]*)\s*\|")
 SKILL_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+
+
+def is_reparse_point(path: Path) -> bool:
+    """Return whether a path is a symlink or Windows name-surrogate reparse point."""
+    try:
+        info = path.lstat()
+    except OSError:
+        return path.is_symlink()
+
+    reparse_flag = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+    return path.is_symlink() or bool(getattr(info, "st_file_attributes", 0) & reparse_flag)
+
+
+def iter_tree_paths(root: Path):
+    """Walk a tree without descending into symlinks or Windows junctions."""
+    pending = [root]
+    while pending:
+        directory = pending.pop()
+        try:
+            with os.scandir(directory) as scan:
+                entries = sorted(scan, key=lambda entry: entry.name)
+        except OSError:
+            continue
+
+        for entry in entries:
+            path = Path(entry.path)
+            yield path
+            if is_reparse_point(path):
+                continue
+            try:
+                if entry.is_dir(follow_symlinks=False):
+                    pending.append(path)
+            except OSError:
+                continue
 
 
 def strip_markdown_code(text: str) -> str:
@@ -113,7 +149,7 @@ def validate_catalog_coverage(root: Path, skill_names):
 
     for catalog_name in catalog_names:
         catalog = root / catalog_name
-        if catalog.is_symlink():
+        if is_reparse_point(catalog):
             errors.append(f"{catalog_name}: catalog must not be a symbolic link")
             continue
         if not catalog.is_file():
@@ -154,16 +190,16 @@ def validate_repository(root: Path = ROOT):
 
     # A repository symlink can redirect validation reads outside the checkout.
     # Reject symlinks before opening manifests, scripts, catalogs, or Markdown.
-    for path in sorted(root.rglob("*")):
+    for path in iter_tree_paths(root):
         relative_parts = path.relative_to(root).parts
         if any(part in ignored_dirs for part in relative_parts):
             continue
-        if path.is_symlink():
+        if is_reparse_point(path):
             errors.append(
-                f"{path.relative_to(root)}: symbolic links are not allowed in validated repository inputs"
+                f"{path.relative_to(root)}: symbolic links and Windows junctions are not allowed in validated repository inputs"
             )
 
-    if skills_dir.is_symlink():
+    if is_reparse_point(skills_dir):
         return errors, 0, 0, 0, ["skills/ directory must not be a symbolic link"]
     if not skills_dir.is_dir():
         return errors, 0, 0, 0, ["skills/ directory is missing"]
@@ -172,9 +208,9 @@ def validate_repository(root: Path = ROOT):
     reference_count = 0
     script_count = 0
 
-    for skill_dir in sorted(path for path in skills_dir.iterdir() if path.is_dir() and not path.is_symlink()):
+    for skill_dir in sorted(path for path in skills_dir.iterdir() if path.is_dir() and not is_reparse_point(path)):
         manifest = skill_dir / "SKILL.md"
-        if manifest.is_symlink() or not manifest.is_file():
+        if is_reparse_point(manifest) or not manifest.is_file():
             errors.append(f"{skill_dir.name}: SKILL.md is missing")
             continue
 
@@ -242,17 +278,17 @@ def validate_repository(root: Path = ROOT):
 
         # Count reference documents; all repository Markdown links are
         # validated once below, including root-level project documentation.
-        for markdown_file in sorted(skill_dir.rglob("*.md")):
-            if markdown_file.is_symlink():
+        for markdown_file in (path for path in iter_tree_paths(skill_dir) if path.suffix.casefold() == ".md"):
+            if is_reparse_point(markdown_file):
                 continue
             if markdown_file.parent.name == "references":
                 reference_count += 1
 
         # Parse reusable Python scripts without executing them.
         scripts_dir = skill_dir / "scripts"
-        if scripts_dir.is_dir() and not scripts_dir.is_symlink():
-            for script in sorted(scripts_dir.rglob("*.py")):
-                if script.is_symlink():
+        if scripts_dir.is_dir() and not is_reparse_point(scripts_dir):
+            for script in (path for path in iter_tree_paths(scripts_dir) if path.suffix.casefold() == ".py"):
+                if is_reparse_point(script):
                     continue
                 script_count += 1
                 try:
@@ -266,9 +302,9 @@ def validate_repository(root: Path = ROOT):
 
     # Validate local links in every repository Markdown document, not only Skills.
     # Ignore generated environments and Git internals when running from a checkout.
-    for markdown_file in sorted(root.rglob("*.md")):
+    for markdown_file in (path for path in iter_tree_paths(root) if path.suffix.casefold() == ".md"):
         relative_parts = markdown_file.relative_to(root).parts
-        if any(part in ignored_dirs for part in relative_parts) or markdown_file.is_symlink():
+        if any(part in ignored_dirs for part in relative_parts) or is_reparse_point(markdown_file):
             continue
         errors.extend(validate_markdown_links(markdown_file, root))
 
