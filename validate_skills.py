@@ -22,6 +22,7 @@ SECURITY_BASELINE_MARKERS = (
 FENCE_START_RE = re.compile(r"^\s{0,3}(\x60{3,}|~{3,})")
 INLINE_CODE_RE = re.compile(r"(?<!\x60)\x60+[^\x60]*\x60+")
 CATALOG_SKILL_RE = re.compile(r"(?m)^\|\s*([a-z0-9][a-z0-9-]*)\s*\|")
+SKILL_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 
 def strip_markdown_code(text: str) -> str:
@@ -193,17 +194,29 @@ def validate_repository(root: Path = ROOT):
             continue
 
         front = parts[1]
-        name_match = re.search(r"(?m)^name:\s*([a-z0-9][a-z0-9-]*)\s*$", front)
-        desc_match = re.search(r"(?m)^description:\s*(.+?)\s*$", front)
+        name_fields = re.findall(r"(?m)^name:\s*(.*?)\s*$", front)
+        description_fields = re.findall(r"(?m)^description:\s*(.+?)\s*$", front)
 
-        if not name_match:
-            errors.append(f"{skill_dir.name}: missing/invalid name")
+        if len(name_fields) != 1:
+            errors.append(f"{skill_dir.name}: name must appear exactly once in YAML front matter")
             continue
+        if len(description_fields) != 1:
+            errors.append(f"{skill_dir.name}: description must appear exactly once in YAML front matter")
+            continue
+
+        name = name_fields[0].strip()
+        if len(name) >= 2 and name[0] == name[-1] and name[0] in ('"', "'"):
+            name = name[1:-1]
+        if not SKILL_NAME_RE.fullmatch(name):
+            errors.append(
+                f"{skill_dir.name}: invalid Skill name; use lowercase letters/digits separated by single hyphens"
+            )
+            continue
+
+        desc_match = re.match(r"(.+?)\s*$", description_fields[0])
         if not desc_match:
             errors.append(f"{skill_dir.name}: missing description")
             continue
-
-        name = name_match.group(1)
         raw_description = desc_match.group(1).strip()
         description = raw_description.strip('"').strip("'")
 
