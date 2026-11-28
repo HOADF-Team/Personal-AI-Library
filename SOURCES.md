@@ -1,6 +1,6 @@
 # Источники и проверка сторонних материалов
 
-Дата проверки: 27 ноября 2026.
+Дата проверки: 28 ноября 2026.
 
 ## Официальная спецификация и документация
 
@@ -9,7 +9,7 @@
 - OpenAI Developers — Build skills: https://developers.openai.com/plugins/build/skills
 - OpenAI Developers — Testing Agent Skills Systematically with Evals: https://developers.openai.com/blog/eval-skills
 - OpenAI Developers — Skills in Plugins: https://developers.openai.com/plugins/concepts/skills
-- OpenAI API Reference — Skills API endpoints (create, retrieve, update, delete and list): https://developers.openai.com/api/reference/cli
+- OpenAI API Reference — Skills API endpoints (create, retrieve, update, delete and list): https://developers.openai.com/api/reference/resources/skills
 
 Навык — это папка с `SKILL.md`, где обязательны поля `name` и `description`. Дополнительные скрипты, ссылки и ресурсы подключаются только при необходимости. Описание навыка влияет на автоматический выбор, поэтому навыки должны быть узкими и не дублировать друг друга.
 
