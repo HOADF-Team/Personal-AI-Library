@@ -15,6 +15,8 @@ $versionB = Join-Path $rollbackRoot "version-b"
 $rollbackTarget = Join-Path $rollbackRoot "installed"
 $sourceLinkTarget = Join-Path $env:TEMP ("Personal-AI-Library-Source-Link-Target-" + [guid]::NewGuid().ToString("N"))
 $sourceLinkedDir = Join-Path $repoRoot "skills\code-audit\_linked-source-test"
+$lockLinkTargetRoot = Join-Path $env:TEMP ("Personal-AI-Library-Lock-Link-" + [guid]::NewGuid().ToString("N"))
+$lockLinkTargetFile = Join-Path $env:TEMP ("Personal-AI-Library-Lock-Target-" + [guid]::NewGuid().ToString("N") + ".txt")
 
 function Add-ManifestEntry {
     param([string]$RelativePath, [string]$FilePath)
@@ -31,6 +33,31 @@ function Add-ManifestEntry {
 }
 
 try {
+    # A pre-existing linked lock file must not cause the installer to open
+    # or lock a file outside the selected installation directory.
+    New-Item -ItemType Directory -Path $lockLinkTargetRoot | Out-Null
+    Set-Content -LiteralPath $lockLinkTargetFile -Value "external lock target" -Encoding UTF8
+    $linkedLockPath = Join-Path $lockLinkTargetRoot ".personal-ai-library-install.lock"
+    New-Item -ItemType SymbolicLink -Path $linkedLockPath -Target $lockLinkTargetFile | Out-Null
+    $linkedLockRejected = $false
+    try {
+        & $installer -TargetRoot $lockLinkTargetRoot
+    }
+    catch {
+        if ($_.Exception.Message -match "Refusing to open a linked installer lock file") {
+            $linkedLockRejected = $true
+        }
+        else {
+            throw
+        }
+    }
+    if (-not $linkedLockRejected) {
+        throw "Installer accepted a linked lock file."
+    }
+    if ((Get-Content -LiteralPath $lockLinkTargetFile -Raw).Trim() -ne "external lock target") {
+        throw "Installer changed the external file targeted by a linked lock file."
+    }
+
     # A second process must not enter the installer while the target is locked.
     New-Item -ItemType Directory -Force -Path $targetRoot | Out-Null
     $lockPath = Join-Path $targetRoot ".personal-ai-library-install.lock"
@@ -372,6 +399,12 @@ finally {
     }
     if (Test-Path -LiteralPath $targetRoot) {
         Remove-Item -LiteralPath $targetRoot -Recurse -Force
+    }
+    if (Test-Path -LiteralPath $lockLinkTargetRoot) {
+        Remove-Item -LiteralPath $lockLinkTargetRoot -Recurse -Force
+    }
+    if (Test-Path -LiteralPath $lockLinkTargetFile) {
+        Remove-Item -LiteralPath $lockLinkTargetFile -Force
     }
     if (Test-Path -LiteralPath $outsideFile) {
         Remove-Item -LiteralPath $outsideFile -Force
