@@ -262,6 +262,41 @@ try {
     [System.IO.Directory]::Delete($sourceLinkedDir)
     Remove-Item -LiteralPath $sourceLinkTarget -Recurse -Force
 
+    # A linked rollback backup must not be followed during transaction recovery.
+    $linkedBackupDirectoryName = ".personal-ai-library-rollback-" + [guid]::NewGuid().ToString("N")
+    $linkedBackupRoot = Join-Path $targetRoot $linkedBackupDirectoryName
+    New-Item -ItemType Directory -Path $linkedBackupRoot | Out-Null
+    Set-Content -LiteralPath $outsideFile -Value "external backup target" -Encoding UTF8
+    Set-Content -LiteralPath $skillFile -Value "preserve installed file" -Encoding UTF8
+    New-Item -ItemType SymbolicLink -Path (Join-Path $linkedBackupRoot "000001.bak") -Target $outsideFile | Out-Null
+    $linkedBackupJournal = [ordered]@{
+        version = 1
+        backup_directory = $linkedBackupDirectoryName
+        manifest_existed = $false
+        entries = @(@{ path = "code-audit\\SKILL.md"; existed = $true; backup = "000001.bak" })
+    } | ConvertTo-Json -Depth 8
+    Set-Content -LiteralPath (Join-Path $targetRoot ".personal-ai-library-transaction.json") -Value $linkedBackupJournal -Encoding UTF8
+    $linkedBackupRejected = $false
+    try {
+        & $installer -TargetRoot $targetRoot
+    }
+    catch {
+        if ($_.Exception.Message -match "Refusing to restore from a linked transaction file backup") {
+            $linkedBackupRejected = $true
+        }
+        else {
+            throw
+        }
+    }
+    if (-not $linkedBackupRejected) {
+        throw "Installer followed a linked transaction backup file."
+    }
+    if ((Get-Content -LiteralPath $skillFile -Raw) -notmatch "preserve installed file") {
+        throw "Installer changed the destination while rejecting a linked backup."
+    }
+    Remove-Item -LiteralPath (Join-Path $targetRoot ".personal-ai-library-transaction.json") -Force
+    Remove-Item -LiteralPath $linkedBackupRoot -Recurse -Force
+
     # A malicious manifest path must stop the installer before touching outside files.
     Set-Content -LiteralPath $outsideFile -Value "must remain" -Encoding UTF8
     $maliciousManifest = [ordered]@{
