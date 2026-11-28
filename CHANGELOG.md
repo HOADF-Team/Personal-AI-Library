@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1 — development
+
+- Added bilingual project instructions, opt-in skill feedback workflow, contribution guidance and an issue template. No telemetry or installer changes.
+
 ## 2026-11-28
 
 ### Security
