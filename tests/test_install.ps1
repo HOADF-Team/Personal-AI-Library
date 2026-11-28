@@ -13,6 +13,8 @@ $rollbackRoot = Join-Path $env:TEMP ("Personal-AI-Library-Rollback-" + [guid]::N
 $versionA = Join-Path $rollbackRoot "version-a"
 $versionB = Join-Path $rollbackRoot "version-b"
 $rollbackTarget = Join-Path $rollbackRoot "installed"
+$sourceLinkTarget = Join-Path $env:TEMP ("Personal-AI-Library-Source-Link-Target-" + [guid]::NewGuid().ToString("N"))
+$sourceLinkedDir = Join-Path $repoRoot "skills\code-audit\_linked-source-test"
 
 function Add-ManifestEntry {
     param([string]$RelativePath, [string]$FilePath)
@@ -235,6 +237,31 @@ try {
         throw "Installer created the target directory through a linked parent before rejecting it."
     }
 
+    # A linked source directory must be rejected before external files can be copied.
+    New-Item -ItemType Directory -Path $sourceLinkTarget | Out-Null
+    Set-Content -LiteralPath (Join-Path $sourceLinkTarget "outside-secret.txt") -Value "must not be installed" -Encoding UTF8
+    New-Item -ItemType Junction -Path $sourceLinkedDir -Target $sourceLinkTarget | Out-Null
+    $sourceLinkRejected = $false
+    try {
+        & $installer -TargetRoot $targetRoot
+    }
+    catch {
+        if ($_.Exception.Message -match "Refusing to install a linked source entry") {
+            $sourceLinkRejected = $true
+        }
+        else {
+            throw
+        }
+    }
+    if (-not $sourceLinkRejected) {
+        throw "Installer accepted a linked source directory."
+    }
+    if (Test-Path -LiteralPath (Join-Path $targetRoot "code-audit\_linked-source-test\outside-secret.txt")) {
+        throw "Installer copied a file from outside the Skills source tree."
+    }
+    [System.IO.Directory]::Delete($sourceLinkedDir)
+    Remove-Item -LiteralPath $sourceLinkTarget -Recurse -Force
+
     # A malicious manifest path must stop the installer before touching outside files.
     Set-Content -LiteralPath $outsideFile -Value "must remain" -Encoding UTF8
     $maliciousManifest = [ordered]@{
@@ -261,6 +288,12 @@ try {
     Write-Host "Installer tests passed: copy, reinstall, user-file preservation, force-update, stale-file cleanup, interrupted-update recovery, concurrent-run locking and manifest path validation."
 }
 finally {
+    if (Test-Path -LiteralPath $sourceLinkedDir) {
+        Remove-Item -LiteralPath $sourceLinkedDir -Force
+    }
+    if (Test-Path -LiteralPath $sourceLinkTarget) {
+        Remove-Item -LiteralPath $sourceLinkTarget -Recurse -Force
+    }
     if (Test-Path -LiteralPath $invalidSourceDir) {
         Remove-Item -LiteralPath $invalidSourceDir -Recurse -Force
     }
