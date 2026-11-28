@@ -107,6 +107,28 @@ class MarkdownLinkValidationTests(unittest.TestCase):
             self.assertTrue(any("CATALOG-EN.md: missing Skills: demo" in error for error in errors))
             self.assertTrue(any("CATALOG-EN.md: unknown Skills: stale-skill" in error for error in errors))
 
+    def test_repository_validation_rejects_symlinked_skill_directory(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "repo"
+            skills = root / "skills"
+            outside = Path(temp_dir) / "outside"
+            skills.mkdir(parents=True)
+            outside.mkdir()
+            (outside / "SKILL.md").write_text(
+                "---\nname: linked\ndescription: External content.\n---\n",
+                encoding="utf-8",
+            )
+            (skills / "linked").symlink_to(outside, target_is_directory=True)
+
+            errors, skill_count, reference_count, script_count, fatal = validate_repository(root)
+
+            self.assertEqual(fatal, [])
+            self.assertEqual(skill_count, 0)
+            self.assertEqual(reference_count, 0)
+            self.assertEqual(script_count, 0)
+            self.assertTrue(any("skills/linked" in error and "symbolic links" in error for error in errors))
+            self.assertFalse(any("External content" in error for error in errors))
+
     def test_repository_validation_requires_untrusted_input_security_baseline(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
