@@ -208,7 +208,7 @@ class MarkdownLinkValidationTests(unittest.TestCase):
             self.assertEqual(skill_count, 0)
             self.assertEqual(reference_count, 0)
             self.assertEqual(script_count, 0)
-            self.assertTrue(any("skills/linked" in error.replace("\\\\", "/") and "symbolic links" in error for error in errors))
+            self.assertTrue(any("skills/linked" in error.replace("\\", "/") and "symbolic links" in error for error in errors))
             self.assertFalse(any("External content" in error for error in errors))
 
     @unittest.skipUnless(os.name == "nt", "Windows junction behavior")
@@ -239,7 +239,7 @@ class MarkdownLinkValidationTests(unittest.TestCase):
             self.assertEqual(skill_count, 0)
             self.assertEqual(reference_count, 0)
             self.assertEqual(script_count, 0)
-            self.assertTrue(any("skills/linked" in error.replace("\\\\", "/") and "junctions" in error for error in errors))
+            self.assertTrue(any("skills/linked" in error.replace("\\", "/") and "junctions" in error for error in errors))
             self.assertFalse(any("External content" in error for error in errors))
 
     def test_repository_validation_requires_untrusted_input_security_baseline(self):
