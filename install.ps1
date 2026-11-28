@@ -151,6 +151,10 @@ function Restore-InterruptedTransaction {
             if (-not (Test-Path -LiteralPath $backupFile -PathType Leaf)) {
                 throw "Transaction file backup is missing: $backupFile"
             }
+            $backupFileItem = Get-Item -LiteralPath $backupFile -Force
+            if (($backupFileItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
+                throw "Refusing to restore from a linked transaction file backup: $backupFile"
+            }
             $destinationDirectory = Split-Path -Parent $destination
             New-Item -ItemType Directory -Force -Path $destinationDirectory | Out-Null
             $restoreTemp = $destination + "." + [guid]::NewGuid().ToString("N") + ".restore"
@@ -171,6 +175,10 @@ function Restore-InterruptedTransaction {
         $manifestBackup = Join-Path $backupRoot "manifest.bak"
         if (-not (Test-Path -LiteralPath $manifestBackup -PathType Leaf)) {
             throw "Transaction manifest backup is missing: $manifestBackup"
+        }
+        $manifestBackupItem = Get-Item -LiteralPath $manifestBackup -Force
+        if (($manifestBackupItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
+            throw "Refusing to restore from a linked transaction manifest backup: $manifestBackup"
         }
         $manifestTemp = $manifestPath + "." + [guid]::NewGuid().ToString("N") + ".restore"
         try {
