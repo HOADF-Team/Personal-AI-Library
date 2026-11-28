@@ -81,7 +81,7 @@ class PythonAstAuditTests(unittest.TestCase):
             (root / "main.py").write_text("VALUE = 1\\n", encoding="utf-8")
             code, report = self.run_audit(root)
 
-            self.assertEqual(code, 0)
+            self.assertEqual(code, 0, report)
             self.assertEqual(report["python_files"], 1)
             self.assertEqual(report["syntax_errors"], 0)
             self.assertFalse(
