@@ -49,7 +49,7 @@ class PythonAstAuditTests(unittest.TestCase):
 
             code, report = self.run_audit(root)
 
-            self.assertEqual(code, 0)
+            self.assertEqual(code, 0, report)
             self.assertEqual(report["python_files"], 1)
             self.assertEqual(report["syntax_errors"], 0)
             self.assertEqual(report["unresolved_import_candidates"], 1)
