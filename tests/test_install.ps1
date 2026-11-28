@@ -246,7 +246,12 @@ try {
         & $installer -TargetRoot $targetRoot
     }
     catch {
-        $sourceLinkRejected = $true
+        if ($_.Exception.Message -match "Refusing to install a linked source entry") {
+            $sourceLinkRejected = $true
+        }
+        else {
+            throw
+        }
     }
     if (-not $sourceLinkRejected) {
         throw "Installer accepted a linked source directory."
