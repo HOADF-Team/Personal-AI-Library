@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-11-28
+
+### Security
+- Hardened the Windows installer to reject linked source directories and entries, preventing Skill files from being read from outside the checked-out repository.
+- Hardened repository validation to reject symlinked Skills, manifests, scripts, catalogs, and Markdown inputs before processing them.
+- Hardened AI-Toolbox catalog and Skill-map validators against symlinked catalog records, catalog files, Skill directories, manifests, and Skills roots.
+
+### Validation
+- Added regression tests for linked source paths and catalog/map traversal.
+- Changed the required untrusted-input security baseline check to ignore fenced and inline code, so example snippets cannot satisfy the baseline without real instructions.
+
+
 ## 2026-11-27
 
 ### Added
