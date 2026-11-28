@@ -214,7 +214,8 @@ def validate_repository(root: Path = ROOT):
         if not description or len(description) > 1024:
             errors.append(f"{skill_dir.name}: description is empty or exceeds 1024 characters")
 
-        if not all(marker.casefold() in content.casefold() for marker in SECURITY_BASELINE_MARKERS):
+        security_content = strip_markdown_code(content).casefold()
+        if not all(marker.casefold() in security_content for marker in SECURITY_BASELINE_MARKERS):
             errors.append(f"{skill_dir.name}: missing untrusted-input security baseline")
         if ": " in raw_description and not (
             (raw_description.startswith('"') and raw_description.endswith('"'))
