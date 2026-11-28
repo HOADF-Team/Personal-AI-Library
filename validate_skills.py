@@ -194,8 +194,8 @@ def validate_repository(root: Path = ROOT):
             continue
 
         front = parts[1]
-        name_fields = re.findall(r"(?m)^name:\\s*(.*?)\\s*$", front)
-        description_fields = re.findall(r"(?m)^description:\\s*(.+?)\\s*$", front)
+        name_fields = re.findall(r"(?m)^name:\s*(.*?)\s*$", front)
+        description_fields = re.findall(r"(?m)^description:\s*(.+?)\s*$", front)
 
         if len(name_fields) != 1:
             errors.append(f"{skill_dir.name}: name must appear exactly once in YAML front matter")
@@ -205,17 +205,15 @@ def validate_repository(root: Path = ROOT):
             continue
 
         name = name_fields[0].strip()
-        if (
-            len(name) >= 2
-            and name[0] == name[-1]
-            and name[0] in ("\\\"", "'")
-        ):
+        if len(name) >= 2 and name[0] == name[-1] and name[0] in ('"', "'"):
             name = name[1:-1]
         if not SKILL_NAME_RE.fullmatch(name):
-            errors.append(f"{skill_dir.name}: invalid Skill name; use lowercase letters/digits separated by single hyphens")
+            errors.append(
+                f"{skill_dir.name}: invalid Skill name; use lowercase letters/digits separated by single hyphens"
+            )
             continue
 
-        desc_match = re.match(r"(.+?)\\s*$", description_fields[0])
+        desc_match = re.match(r"(.+?)\s*$", description_fields[0])
         if not desc_match:
             errors.append(f"{skill_dir.name}: missing description")
             continue
