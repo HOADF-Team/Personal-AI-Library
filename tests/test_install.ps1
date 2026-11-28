@@ -322,7 +322,7 @@ try {
 
     # Windows alternate data streams and reserved device names are not
     # valid managed Skill paths, even when they remain under TargetRoot.
-    foreach ($invalidPath in @("code-audit\SKILL.md:payload", "code-audit\NUL.txt")) {
+    foreach ($invalidPath in @("code-audit\SKILL.md:payload", "code-audit\NUL.txt", "code-audit\COM¹.txt", "code-audit\COM².txt", "code-audit\COM³.txt", "code-audit\LPT¹.txt", "code-audit\LPT².txt", "code-audit\LPT³.txt")) {
         $specialPathManifest = [ordered]@{
             version = 1
             files = @{ $invalidPath = ("0" * 64) }
