@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -16,6 +17,8 @@ class PythonAstAuditTests(unittest.TestCase):
             [sys.executable, str(AUDIT_SCRIPT), str(project), "--json"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            env={**os.environ, "PYTHONIOENCODING": "utf-8"},
             check=False,
         )
         self.assertTrue(result.stdout, result.stderr)
@@ -46,12 +49,44 @@ class PythonAstAuditTests(unittest.TestCase):
 
             code, report = self.run_audit(root)
 
-            self.assertEqual(code, 0)
+            self.assertEqual(code, 0, report)
             self.assertEqual(report["python_files"], 1)
             self.assertEqual(report["syntax_errors"], 0)
             self.assertEqual(report["unresolved_import_candidates"], 1)
             self.assertEqual(report["findings"][0]["module"], "external_package")
 
+
+    @unittest.skipUnless(sys.platform == "win32", "Windows junction behavior")
+    def test_skips_python_files_inside_directory_junctions(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp) / "project"
+            outside = Path(temp) / "outside"
+            root.mkdir()
+            outside.mkdir()
+
+            (outside / "external.py").write_text(
+                "def broken(:\n", encoding="utf-8"
+            )
+            junction = root / "external_link"
+            result = subprocess.run(
+                ["cmd", "/c", "mklink", "/J", str(junction), str(outside)],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            if result.returncode != 0:
+                self.skipTest("Could not create a Windows directory junction")
+
+            (root / "main.py").write_text("VALUE = 1\n", encoding="utf-8")
+            code, report = self.run_audit(root)
+
+            self.assertEqual(code, 0, report)
+            self.assertEqual(report["python_files"], 1)
+            self.assertEqual(report["syntax_errors"], 0)
+            self.assertFalse(
+                any("external_link" in item["file"] for item in report["findings"])
+            )
 
     def test_detects_missing_nested_module(self):
         with tempfile.TemporaryDirectory() as temp:

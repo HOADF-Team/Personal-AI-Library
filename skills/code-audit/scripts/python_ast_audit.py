@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import argparse
 import ast
+import ctypes
 import json
+import os
+import stat
 import sys
 import sysconfig
 from collections import Counter
@@ -33,31 +36,71 @@ def is_stdlib_module(name: str) -> bool:
     return extension_dir.is_dir() and any(extension_dir.glob(top + ".*"))
 
 
+def is_reparse_point(path: Path) -> bool:
+    """Return True for symlinks and Windows junction/reparse points."""
+    try:
+        info = path.lstat()
+    except OSError:
+        return path.is_symlink()
+    reparse_flag = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+    if path.is_symlink() or bool(
+        getattr(info, "st_file_attributes", 0) & reparse_flag
+    ):
+        return True
+
+    # Python 3.9's Windows lstat() does not consistently expose junction
+    # attributes. Query the directory entry itself through Win32 as a fallback.
+    if os.name == "nt":
+        try:
+            get_attributes = ctypes.windll.kernel32.GetFileAttributesW
+            get_attributes.argtypes = [ctypes.c_wchar_p]
+            get_attributes.restype = ctypes.c_uint32
+            attributes = get_attributes(str(path))
+            return attributes != 0xFFFFFFFF and bool(attributes & reparse_flag)
+        except (AttributeError, OSError):
+            pass
+    return False
+
+
 def has_symlink_component(root: Path, path: Path) -> bool:
-    """Return True when a path or any component below root is a symlink."""
+    """Return True when a path or any component below root is a reparse point."""
     try:
         relative = path.relative_to(root)
     except ValueError:
         return True
 
     current = root
-    if current.is_symlink():
+    if is_reparse_point(current):
         return True
     for part in relative.parts:
         current = current / part
-        if current.is_symlink():
+        if is_reparse_point(current):
             return True
     return False
 
 
 def iter_python_files(root: Path):
-    for path in root.rglob("*.py"):
-        if any(part in SKIP_DIRS for part in path.relative_to(root).parts):
+    """Walk the project without descending into symlinks or Windows junctions."""
+    pending = [root]
+    while pending:
+        directory = pending.pop()
+        try:
+            with os.scandir(directory) as scan:
+                entries = sorted(scan, key=lambda entry: entry.name)
+        except OSError:
             continue
-        # Do not read source files redirected outside the audited project.
-        if has_symlink_component(root, path):
-            continue
-        yield path
+
+        for entry in entries:
+            path = Path(entry.path)
+            relative = path.relative_to(root)
+            if any(part in SKIP_DIRS for part in relative.parts):
+                continue
+            if is_reparse_point(path):
+                continue
+            if entry.is_dir(follow_symlinks=False):
+                pending.append(path)
+            elif path.suffix == ".py" and entry.is_file(follow_symlinks=False):
+                yield path
 
 
 def local_module_exists(root: Path, module: str) -> bool:
