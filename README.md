@@ -4,7 +4,7 @@
 
 Personal AI Library helps an AI coding agent move from a broad request to a structured workflow: investigation, code review, debugging, development, deployment, research, or document preparation. Instead of rebuilding the same process for every project, the agent can select a relevant skill and load its supporting references when needed.
 
-> **Current collection:** 25 skills. **Development version:** `0.1.0` (not yet published as a GitHub Release). The collection is actively maintained. A documented workflow is not a guarantee that it has been tested in every project, environment, or service configuration.
+> **Current collection:** 25 skills. **Development version:** `0.1.1` (latest published release: `v0.1.0`). The collection is actively maintained. A documented workflow is not a guarantee that it has been tested in every project, environment, or service configuration.
 
 **Languages:** [English](#english) | [Русский](#русский)
 
@@ -141,6 +141,8 @@ Personal-AI-Library/
 
 ### Feedback and contributions
 
+Copy the recommended ChatGPT, Claude or Codex project instruction from [FEEDBACK.md](FEEDBACK.md). See [CONTRIBUTING.md](CONTRIBUTING.md) for the review process.
+
 Found an error, an outdated instruction, or have an idea for a useful skill? Open a [GitHub Issue](https://github.com/HOADF-Team/Personal-AI-Library/issues). Include the task, expected behavior, and relevant sources where possible.
 
 New skills should solve a distinct practical problem, avoid duplicating existing skills, and respect the licenses of third-party materials.
@@ -166,7 +168,7 @@ Read the license files for the exact scope and conditions. Third-party materials
 
 Она помогает ИИ-агенту переходить от общей задачи к конкретному порядку действий: исследованию, аудиту кода, отладке, разработке, развёртыванию, анализу информации или подготовке документов. Вместо того чтобы каждый раз собирать процесс с нуля, агент выбирает подходящий навык и при необходимости читает дополнительные материалы.
 
-> **Текущая коллекция:** 25 навыков. **Версия разработки:** `0.1.0` (релиз GitHub пока не опубликован). Библиотека развивается. Наличие инструкции не означает, что описанный процесс проверен на всех проектах, системах и конфигурациях сервисов.
+> **Текущая коллекция:** 25 навыков. **Версия разработки:** `0.1.1` (последний опубликованный релиз: `v0.1.0`). Библиотека развивается. Наличие инструкции не означает, что описанный процесс проверен на всех проектах, системах и конфигурациях сервисов.
 
 ### Что входит в библиотеку
 
@@ -294,6 +296,8 @@ Personal-AI-Library/
 ```
 
 ### Обратная связь и предложения
+
+Готовая инструкция для проектов ChatGPT, Claude и Codex: [FEEDBACK.md](FEEDBACK.md). Правила исправлений: [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Если вы нашли ошибку, устаревшую инструкцию или хотите предложить новый навык, создайте [Issue на GitHub](https://github.com/HOADF-Team/Personal-AI-Library/issues). По возможности укажите задачу, ожидаемое поведение и источники.
 
