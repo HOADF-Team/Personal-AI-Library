@@ -254,7 +254,7 @@ try {
     if (Test-Path -LiteralPath (Join-Path $targetRoot "code-audit\_linked-source-test\outside-secret.txt")) {
         throw "Installer copied a file from outside the Skills source tree."
     }
-    Remove-Item -LiteralPath $sourceLinkedDir -Force
+    [System.IO.Directory]::Delete($sourceLinkedDir)
     Remove-Item -LiteralPath $sourceLinkTarget -Recurse -Force
 
     # A malicious manifest path must stop the installer before touching outside files.
