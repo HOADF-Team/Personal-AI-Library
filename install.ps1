@@ -51,6 +51,10 @@ if (($rootItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0)
 }
 
 $lockPath = Join-Path $targetRoot ".personal-ai-library-install.lock"
+$lockItem = Get-Item -LiteralPath $lockPath -Force -ErrorAction SilentlyContinue
+if ($lockItem -and (($lockItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0)) {
+    throw "Refusing to open a linked installer lock file: $lockPath"
+}
 try {
     # FileShare.None is an OS-enforced, cross-process lock. The lock file may
     # remain after a crash; the operating system releases the handle, so the
