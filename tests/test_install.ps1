@@ -320,6 +320,32 @@ try {
         throw "Installer modified a file outside the installation folder."
     }
 
+    # Windows alternate data streams and reserved device names are not
+    # valid managed Skill paths, even when they remain under TargetRoot.
+    foreach ($invalidPath in @("code-audit\SKILL.md:payload", "code-audit\NUL.txt")) {
+        $specialPathManifest = [ordered]@{
+            version = 1
+            files = @{ $invalidPath = ("0" * 64) }
+        } | ConvertTo-Json -Depth 5
+        Set-Content -LiteralPath $manifestPath -Value $specialPathManifest -Encoding UTF8
+
+        $specialPathRejected = $false
+        try {
+            & $installer -Force -TargetRoot $targetRoot
+        }
+        catch {
+            if ($_.Exception.Message -match "Invalid Windows path component|Reserved Windows device name") {
+                $specialPathRejected = $true
+            }
+            else {
+                throw
+            }
+        }
+        if (-not $specialPathRejected) {
+            throw "Installer accepted an invalid Windows path component: $invalidPath"
+        }
+    }
+
     Write-Host "Installer tests passed: copy, reinstall, user-file preservation, force-update, stale-file cleanup, interrupted-update recovery, concurrent-run locking and manifest path validation."
 }
 finally {
