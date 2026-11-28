@@ -21,6 +21,38 @@ class PythonAstAuditTests(unittest.TestCase):
         self.assertTrue(result.stdout, result.stderr)
         return result.returncode, json.loads(result.stdout)
 
+    def test_skips_symlinked_python_files_and_packages(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp) / "project"
+            outside = Path(temp) / "outside"
+            root.mkdir()
+            outside.mkdir()
+
+            external_file = outside / "linked.py"
+            external_file.write_text("def broken(:\n", encoding="utf-8")
+            (root / "linked.py").symlink_to(external_file)
+
+            external_package = outside / "external_package"
+            external_package.mkdir()
+            (external_package / "__init__.py").write_text(
+                "EXPORTED = True\n", encoding="utf-8"
+            )
+            (root / "external_package").symlink_to(
+                external_package, target_is_directory=True
+            )
+            (root / "main.py").write_text(
+                "import external_package\n", encoding="utf-8"
+            )
+
+            code, report = self.run_audit(root)
+
+            self.assertEqual(code, 0)
+            self.assertEqual(report["python_files"], 1)
+            self.assertEqual(report["syntax_errors"], 0)
+            self.assertEqual(report["unresolved_import_candidates"], 1)
+            self.assertEqual(report["findings"][0]["module"], "external_package")
+
+
     def test_detects_missing_nested_module(self):
         with tempfile.TemporaryDirectory() as temp:
             project = Path(temp)

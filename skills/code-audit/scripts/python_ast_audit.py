@@ -33,9 +33,29 @@ def is_stdlib_module(name: str) -> bool:
     return extension_dir.is_dir() and any(extension_dir.glob(top + ".*"))
 
 
+def has_symlink_component(root: Path, path: Path) -> bool:
+    """Return True when a path or any component below root is a symlink."""
+    try:
+        relative = path.relative_to(root)
+    except ValueError:
+        return True
+
+    current = root
+    if current.is_symlink():
+        return True
+    for part in relative.parts:
+        current = current / part
+        if current.is_symlink():
+            return True
+    return False
+
+
 def iter_python_files(root: Path):
     for path in root.rglob("*.py"):
         if any(part in SKIP_DIRS for part in path.relative_to(root).parts):
+            continue
+        # Do not read source files redirected outside the audited project.
+        if has_symlink_component(root, path):
             continue
         yield path
 
@@ -43,12 +63,16 @@ def iter_python_files(root: Path):
 def local_module_exists(root: Path, module: str) -> bool:
     parts = module.split(".")
     base = root.joinpath(*parts)
-    return base.with_suffix(".py").is_file() or base.is_dir()
+    module_file = base.with_suffix(".py")
+    return (
+        (not has_symlink_component(root, module_file) and module_file.is_file())
+        or (not has_symlink_component(root, base) and base.is_dir())
+    )
 
 
 def package_export_names(root: Path, module: str):
     init_file = root.joinpath(*module.split(".")) / "__init__.py"
-    if not init_file.is_file():
+    if has_symlink_component(root, init_file) or not init_file.is_file():
         return set()
     try:
         tree = ast.parse(init_file.read_text(encoding="utf-8-sig"), filename=str(init_file))
