@@ -65,7 +65,7 @@ class PythonAstAuditTests(unittest.TestCase):
             outside.mkdir()
 
             (outside / "external.py").write_text(
-                "def broken(:\\n", encoding="utf-8"
+                "def broken(:\n", encoding="utf-8"
             )
             junction = root / "external_link"
             result = subprocess.run(
@@ -78,7 +78,7 @@ class PythonAstAuditTests(unittest.TestCase):
             if result.returncode != 0:
                 self.skipTest("Could not create a Windows directory junction")
 
-            (root / "main.py").write_text("VALUE = 1\\n", encoding="utf-8")
+            (root / "main.py").write_text("VALUE = 1\n", encoding="utf-8")
             code, report = self.run_audit(root)
 
             self.assertEqual(code, 0, report)
