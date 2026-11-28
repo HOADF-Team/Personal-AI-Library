@@ -99,7 +99,7 @@ function Get-SafeTargetPath {
         if ($part -match '[:*?"<>|]' -or $part.EndsWith('.') -or $part.EndsWith(' ')) {
             throw "Invalid Windows path component in installer manifest: $RelativePath"
         }
-        if ($part -match '^(?i:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\..*)?$') {
+        if ($part -match '^(?i:CON|PRN|AUX|NUL|COM[1-9\u00B9\u00B2\u00B3]|LPT[1-9\u00B9\u00B2\u00B3])(?:\..*)?$') {
             throw "Reserved Windows device name in installer manifest: $RelativePath"
         }
     }
