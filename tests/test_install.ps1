@@ -322,7 +322,7 @@ try {
 
     # Windows alternate data streams and reserved device names are not
     # valid managed Skill paths, even when they remain under TargetRoot.
-        $superscriptOne = [char]0x00B9
+    $superscriptOne = [char]0x00B9
     $superscriptTwo = [char]0x00B2
     $superscriptThree = [char]0x00B3
     foreach ($invalidPath in @(
