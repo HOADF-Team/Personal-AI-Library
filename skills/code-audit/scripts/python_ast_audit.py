@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import ctypes
 import json
 import os
 import stat
@@ -42,9 +43,23 @@ def is_reparse_point(path: Path) -> bool:
     except OSError:
         return path.is_symlink()
     reparse_flag = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
-    return path.is_symlink() or bool(
+    if path.is_symlink() or bool(
         getattr(info, "st_file_attributes", 0) & reparse_flag
-    )
+    ):
+        return True
+
+    # Python 3.9's Windows lstat() does not consistently expose junction
+    # attributes. Query the directory entry itself through Win32 as a fallback.
+    if os.name == "nt":
+        try:
+            get_attributes = ctypes.windll.kernel32.GetFileAttributesW
+            get_attributes.argtypes = [ctypes.c_wchar_p]
+            get_attributes.restype = ctypes.c_uint32
+            attributes = get_attributes(str(path))
+            return attributes != 0xFFFFFFFF and bool(attributes & reparse_flag)
+        except (AttributeError, OSError):
+            pass
+    return False
 
 
 def has_symlink_component(root: Path, path: Path) -> bool:
