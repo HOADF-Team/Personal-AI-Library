@@ -15,6 +15,11 @@ if (-not (Test-Path -LiteralPath $sourceRoot -PathType Container)) {
     throw "Skills folder not found: $sourceRoot"
 }
 
+$sourceRootItem = Get-Item -LiteralPath $sourceRoot -Force
+if (($sourceRootItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
+    throw "Refusing to read Skills through a linked source directory: $sourceRoot"
+}
+
 # Check the nearest existing ancestor before creating anything. Checking only
 # TargetRoot itself misses a linked parent such as ~/.agents -> another folder.
 $ancestor = $targetRoot
@@ -196,6 +201,22 @@ foreach ($folder in $skillFolders) {
     }
     else {
         Write-Warning "Skipping $($folder.Name): SKILL.md is missing"
+    }
+}
+
+foreach ($folder in $validSkillFolders) {
+    $folderItem = Get-Item -LiteralPath $folder.FullName -Force
+    if (($folderItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
+        throw "Refusing to read a linked Skill source directory: $($folder.FullName)"
+    }
+
+    # Do not let a repository symlink/junction make the installer read files
+    # outside the checked-out Skills tree. Get-ChildItem does not recurse into
+    # linked directories by default; inspect every returned entry before copy.
+    foreach ($entry in @(Get-ChildItem -LiteralPath $folder.FullName -Force -Recurse)) {
+        if (($entry.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
+            throw "Refusing to install a linked source entry: $($entry.FullName)"
+        }
     }
 }
 
