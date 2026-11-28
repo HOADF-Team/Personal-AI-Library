@@ -29,19 +29,19 @@ class PythonAstAuditTests(unittest.TestCase):
             outside.mkdir()
 
             external_file = outside / "linked.py"
-            external_file.write_text("def broken(:\\n", encoding="utf-8")
+            external_file.write_text("def broken(:\n", encoding="utf-8")
             (root / "linked.py").symlink_to(external_file)
 
             external_package = outside / "external_package"
             external_package.mkdir()
             (external_package / "__init__.py").write_text(
-                "EXPORTED = True\\n", encoding="utf-8"
+                "EXPORTED = True\n", encoding="utf-8"
             )
             (root / "external_package").symlink_to(
                 external_package, target_is_directory=True
             )
             (root / "main.py").write_text(
-                "import external_package\\n", encoding="utf-8"
+                "import external_package\n", encoding="utf-8"
             )
 
             code, report = self.run_audit(root)
