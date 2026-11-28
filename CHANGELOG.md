@@ -3,6 +3,9 @@
 ## 2026-11-28
 
 ### Security
+- Enabled active default-branch rules requiring pull requests, six GitHub Actions checks, current base, and blocking deletion and force pushes without bypass actors.
+- Verified direct update rejection using an empty commit; PR #34 passed all six checks on both push and pull_request and merged without file changes.
+- Recorded audit scope and remaining limitations in `SECURITY-AUDIT.md`.
 - Hardened the Windows installer to reject linked source directories and entries, preventing Skill files from being read from outside the checked-out repository.
 - Hardened repository validation to reject symlinked Skills, manifests, scripts, catalogs, and Markdown inputs before processing them.
 - Hardened AI-Toolbox catalog and Skill-map validators against symlinked catalog records, catalog files, Skill directories, manifests, and Skills roots.
