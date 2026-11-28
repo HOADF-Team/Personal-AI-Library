@@ -55,7 +55,7 @@ def iter_python_files(root: Path):
         if any(part in SKIP_DIRS for part in path.relative_to(root).parts):
             continue
         # Do not read source files redirected outside the audited project.
-        if path.is_symlink():
+        if has_symlink_component(root, path):
             continue
         yield path
 
